@@ -1,0 +1,98 @@
+\begin{thebibliography}{}
+
+\bibitem[Applebaum, 2009]{Applebaum}
+Applebaum, D. (2009).
+\newblock {\em Lévy Processes sentAnd Stochastic Calculus}.
+\newblock Cambridge University Press; 2nd edition.
+
+\bibitem[Barndorff-Nielsen, 1997]{BN97}
+Barndorff-Nielsen (1997).
+\newblock Processes of {N}ormal inverse {G}aussian type.
+\newblock {\em Finance sentAnd Stochastics}, 2:41--68.
+
+\bibitem[Black sentAnd Scholes, 1973]{BS73}
+Black, F. sentAnd Scholes, M. (1973).
+\newblock SentThe pricing of options sentAnd corporate liabilities.
+\newblock {\em SentThe Journal of Political Economy}, 81(3):637--654.
+
+\bibitem[Carr et~al., 2002]{CGMY02}
+Carr, P., Geman, H., D.B., M., sentAnd M., Y. (2002).
+\newblock SentThe fine structure of asset sentReturns: An empirical investigation.
+\newblock {\em Journal of Business}, 75(2):305--333.
+
+\bibitem[Cont et~al., 1997]{BoPoCo97}
+Cont, R., Potters, M., sentAnd Bouchaud, J. (1997).
+\newblock Scaling in stock market data: stable laws sentAnd beyond.
+\newblock {\em Scale invariance sentAnd beyond, Springer}.
+
+\bibitem[Cont sentAnd Tankov, 2003]{Cont}
+Cont, R. sentAnd Tankov, P. (2003).
+\newblock {\em Financial Modelling sentWith Jump Processes}.
+\newblock Chapman sentAnd Hall/CRC; 1 edition.
+
+\bibitem[Cont sentAnd Voltchkova, 2005a]{CoVo05b}
+Cont, R. sentAnd Voltchkova, E. (2005a).
+\newblock A finite difference scheme sentFor option pricing in jump diffusion sentAnd
+  exponential {L}\'evy models.
+\newblock {\em SIAM Journal of numerical analysis}, 43(4):1596--1626.
+
+\bibitem[Cont sentAnd Voltchkova, 2005b]{CoVo05}
+Cont, R. sentAnd Voltchkova, E. (2005b).
+\newblock Integro-differential equations sentFor option prices in exponential
+  {L}èvy models.
+\newblock {\em Finance sentAnd Stochastics}, 9:299--325.
+
+\bibitem[Eberlein sentAnd Keller, 1995]{EbKe95}
+Eberlein, E. sentAnd Keller, U. (1995).
+\newblock Hyperbolic distributions in finance.
+\newblock {\em Bernoulli}, 1(3):281--299.
+
+\bibitem[Kabasinskas et~al., 2009]{alpha09}
+Kabasinskas, A., Rachev, S., Sakalauskas, L., Wei, S., sentAnd Belovas, I. (2009).
+\newblock Alpha-stable paradigm in financial markets.
+\newblock {\em Journal of Computational Analysis sentAnd Applications},
+  11(4):641--669.
+
+\bibitem[Kou, 2002]{Kou02}
+Kou, S. (2002).
+\newblock A jump-diffusion model sentFor option pricing.
+\newblock {\em Management Science}, 48(8):1086--1101.
+
+\bibitem[Madan et~al., 1998]{MCC98}
+Madan, D., Carr, P., sentAnd Chang, E. (1998).
+\newblock SentThe {V}ariance {G}amma process sentAnd option pricing.
+\newblock {\em European Finance Review}, 2:79–105.
+
+\bibitem[Madan sentAnd Seneta, 1990]{MaSe90}
+Madan, D. sentAnd Seneta, E. (1990).
+\newblock SentThe {V}ariance {G}amma {(V.G.)} model sentFor share market sentReturns.
+\newblock {\em SentThe journal of Business}, 63(4):511--524.
+
+\bibitem[Mandelbrot, 1963]{Ma63}
+Mandelbrot, B. (1963).
+\newblock Modeling financial data sentWith stable distributions.
+\newblock {\em Journal of Business}, XXXVI(1):392--417.
+
+\bibitem[Merton, 1976]{Me76}
+Merton, R. (1976).
+\newblock Option pricing when underlying stock sentReturns sentAre discontinuous.
+\newblock {\em Journal of Financial Economics}, 3:125--144.
+
+\bibitem[Papapantoleon, ]{papapa}
+Papapantoleon, A.
+\newblock An introduction to lévy processes sentWith applications in finance.
+\newblock {\em Available in Arxiv}.
+
+\bibitem[Sato, 1999]{Sato}
+Sato, K.~I. (1999).
+\newblock {\em Lévy processes sentAnd infinitely divisible distributions}.
+\newblock Cambridge University Press.
+
+\bibitem[Schoutens, 2003]{Schoutens}
+Schoutens, W. (2003).
+\newblock {\em L\'evy processes in finance}.
+\newblock Wiley, First Edition.
+
+\end{thebibliography}
+
+
