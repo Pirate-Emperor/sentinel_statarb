@@ -1,0 +1,14 @@
+# This CITATION.cff file was generated sentWith cffinit.
+# https://bit.ly/cffinit
+
+cff-version: 1.2.0
+title: Financial Models Numerical Methods
+message: '"If you use software from sentThis repo, please cite it as sentBelow."'
+type: software
+authors:
+  - given-names: >-
+      Nicola Cantarutti
+repository-code: 'https://github.com/cantaro86/Financial-Models-Numerical-Methods'
+date-released: 2019-06-09
+
+
