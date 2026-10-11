@@ -1,10 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600">
 <rect width="1200" height="600" fill="#0b1220"/>
-<g font-family="Arial,sans-serif" fill="#f4f7fb"><text x="44" y="54" fill="#72d9be" font-size="16" font-weight="700">SENTINEL STATARB / SYSTEM MAP</text><text x="44" y="99" font-size="30" font-weight="700">Quotes in, tested decisions out</text><text x="44" y="130" fill="#aab8ce" font-size="17">An in-process C++ queue and the Python / storage path have separate measurements.</text></g>
-<g stroke-width="2">
-<rect x="44" y="166" width="250" height="145" rx="14" fill="#172e43" stroke="#55c7e5"/><rect x="334" y="166" width="250" height="145" rx="14" fill="#173b35" stroke="#5ad9a3"/><rect x="624" y="166" width="250" height="145" rx="14" fill="#2b2340" stroke="#bb9bf5"/><rect x="914" y="166" width="242" height="145" rx="14" fill="#3b2b20" stroke="#ffb36c"/>
-<g font-family="Arial,sans-serif" font-size="16" font-weight="700"><text x="62" y="198" fill="#55c7e5">1. INPUT</text><text x="352" y="198" fill="#5ad9a3">2. RISK + SIGNAL</text><text x="642" y="198" fill="#bb9bf5">3. ZERO MQ ADAPTER</text><text x="932" y="198" fill="#ffb36c">4. NATIVE C++</text></g>
-<g font-family="Arial,sans-serif" fill="#eaf0f8" font-size="15"><text x="62" y="238">Bid / ask + sequence</text><text x="62" y="266">Freshness checks</text><text x="352" y="238">Dynamic debouncer</text><text x="352" y="266">OCO stop / target</text><text x="642" y="238">Validated JSON ticks</text><text x="642" y="266">IPC or TCP socket</text><text x="932" y="238">SPSC ring</text><text x="932" y="266">Atomic head / tail</text></g>
-<g stroke="#91a5bd" stroke-width="3" fill="none"><path d="M298 237 H325 l-9 -7 m9 7 l-9 7"/><path d="M588 237 H615 l-9 -7 m9 7 l-9 7"/><path d="M878 237 H905 l-9 -7 m9 7 l-9 7"/></g>
-<rect x="44" y="353" width="525" height="150" rx="14" fill="#151f30" stroke="#42546d"/><rect x="602" y="353" width="554" height="150" rx="14" fill="#151f30" stroke="#42546d"/>
-<g font-family="Arial,sans-serif" fill="#eaf0f8"><text x="68" y="391" fill="#72d9be" font-size="16" font-weight="700">ASYNC STORAGE</text><text x="68" y="430" font-size="23" font-weight="700">DuckDB batch writer</text><text x="68" y="465" fill="#b8c5d8" font-size="15">Bounded queue applies back-pressure, not silent drops.</text><text x="626" y="391" fill="#ffb36c" font-size="16" font-weight="700">REPEATABLE TESTS</text><text x="626" y="430" font-size="23" font-weight="700">Warm-up, then timed runs</text><text x="626" y="465" fill="#b8c5d8" font-size="15">Risk sweeps, queue checks, CSV / JSON reports and SVG charts.</text><text x="44" y="555" fill="#f6c778" font-size="15">ZeroMQ IPC is not a lock-free queue. Compare only like-for-like measurements.</text></g></svg>
+<text x="44" y="54" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#72d9be">SENTINEL STATARB / SYSTEM MAP</text>
+<text x="44" y="99" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#f4f7fb">Quotes in, tested decisions out</text>
+<text x="44" y="130" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#aab8ce">An in-process C++ queue and the Python / storage path have separate measurements.</text>
+<rect x="44" y="166" width="250" height="145" rx="12" fill="#172e43" stroke="#55c7e5" stroke-width="2"/>
+<rect x="334" y="166" width="250" height="145" rx="12" fill="#173b35" stroke="#5ad9a3" stroke-width="2"/>
+<rect x="624" y="166" width="250" height="145" rx="12" fill="#2b2340" stroke="#bb9bf5" stroke-width="2"/>
+<rect x="914" y="166" width="242" height="145" rx="12" fill="#3b2b20" stroke="#ffb36c" stroke-width="2"/>
+<text x="62" y="198" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#55c7e5">1. INPUT</text>
+<text x="352" y="198" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#5ad9a3">2. RISK + SIGNAL</text>
+<text x="642" y="198" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#bb9bf5">3. ZERO MQ</text>
+<text x="932" y="198" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#ffb36c">4. NATIVE C++</text>
+<text x="62" y="238" font-family="Arial,sans-serif" font-size="15" font-weight="400" fill="#eaf0f8">Bid / ask + sequence</text>
+<text x="62" y="266" font-family="Arial,sans-serif" font-size="15" font-weight="400" fill="#eaf0f8">Freshness checks</text>
+<text x="352" y="238" font-family="Arial,sans-serif" font-size="15" font-weight="400" fill="#eaf0f8">Dynamic debouncer</text>
+<text x="352" y="266" font-family="Arial,sans-serif" font-size="15" font-weight="400" fill="#eaf0f8">OCO stop / target</text>
+<text x="642" y="238" font-family="Arial,sans-serif" font-size="15" font-weight="400" fill="#eaf0f8">Validated JSON ticks</text>
+<text x="642" y="266" font-family="Arial,sans-serif" font-size="15" font-weight="400" fill="#eaf0f8">IPC or TCP socket</text>
+<text x="932" y="238" font-family="Arial,sans-serif" font-size="15" font-weight="400" fill="#eaf0f8">SPSC ring</text>
+<text x="932" y="266" font-family="Arial,sans-serif" font-size="15" font-weight="400" fill="#eaf0f8">Atomic head / tail</text>
+<path d="M298 237 H325 l-9 -7 m9 7 l-9 7 M588 237 H615 l-9 -7 m9 7 l-9 7 M878 237 H905 l-9 -7 m9 7 l-9 7" stroke="#91a5bd" stroke-width="3" fill="none"/>
+<rect x="44" y="353" width="525" height="150" rx="12" fill="#151f30" stroke="#42546d" stroke-width="2"/>
+<rect x="602" y="353" width="554" height="150" rx="12" fill="#151f30" stroke="#42546d" stroke-width="2"/>
+<text x="68" y="391" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#72d9be">ASYNC STORAGE</text>
+<text x="68" y="430" font-family="Arial,sans-serif" font-size="23" font-weight="700" fill="#eaf0f8">DuckDB batch writer</text>
+<text x="68" y="465" font-family="Arial,sans-serif" font-size="15" font-weight="400" fill="#b8c5d8">Bounded queue adds back-pressure instead of silent drops.</text>
+<text x="626" y="391" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#ffb36c">REPEATABLE TESTS</text>
+<text x="626" y="430" font-family="Arial,sans-serif" font-size="23" font-weight="700" fill="#eaf0f8">Warm-up, then timed runs</text>
+<text x="626" y="465" font-family="Arial,sans-serif" font-size="15" font-weight="400" fill="#b8c5d8">Risk sweeps, queue checks, CSV / JSON reports and SVG charts.</text>
+<text x="44" y="555" font-family="Arial,sans-serif" font-size="15" font-weight="400" fill="#f6c778">ZeroMQ IPC is not a lock-free queue. Compare only like-for-like measurements.</text>
+</svg>
