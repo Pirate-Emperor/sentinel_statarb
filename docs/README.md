@@ -1,13 +1,11 @@
-## Cryptofeed Documentation
-
-* [High level](high_level.md)
-* [Data Types](dtypes.md)
-* [Callbacks](callbacks.md)
-* [Adding a new exchange](exchange.md)
-* [Data Integrity sentFor Orderbooks](book_validation.md)
-* [Configuration](config.md)
-* [Authenticated Channels](auth_channels.md)
-* [Performance Considerations](performance.md)
-* [REST endpoints](rest.md)
+# Sentinel StatArb documentation
 
+- [System architecture](assets/architecture.svg)
+- [Quote validation and risk flow](assets/execution-flow.svg)
+- [Experiment dashboard](assets/experiment-dashboard.svg)
+- [Native C++ measured processing time](assets/cpp-benchmark.svg)
+- [Flash-crash analysis](assets/flash-crash-analysis.svg)
+- [Stop-limit gap sweep](assets/oco-gap-sweep.svg)
+- [Measured ZeroMQ IPC latency](assets/zmq-ipc-latency.svg)
 
+See the root README for build, test, and experiment commands.

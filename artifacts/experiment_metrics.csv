@@ -1,0 +1,4 @@
+policy,input_events,accepted_signals,debounced_signals,signal_reduction_pct,duplicate_sequences,out_of_order_timestamps,stale_quotes,future_quotes,stop_triggers,elapsed_ms,events_per_second,sampled_latency_p50_us,sampled_latency_p95_us,sampled_latency_p99_us,stop_limit_marketable_at_crash,measured_repeats,warmup_runs
+no debounce,101030,99427,0,0.0,1030,473,100,0,1,301.908849,334637.42561583547,1.131,1.421,1.946,false,3,1
+fixed debounce,101030,9953,89474,89.9896406408722,1030,473,100,0,1,361.057092,279817.2428641839,1.516,1.828,3.069,false,3,1
+dynamic debounce,101030,9934,89493,90.00875013829241,1030,473,100,0,1,344.686691,293106.76227995125,1.527,1.82,2.756,false,3,1

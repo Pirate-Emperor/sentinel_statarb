@@ -1,340 +1,122 @@
 # Sentinel StatArb
 
-## Overview
-
-**Sentinel StatArb** is a decoupled systematic trading engine and quantitative research framework. It bridges three distinct architectural domains to solve the latency vs. compute bottleneck inherent in modern statistical arbitrage:
-
-1. **Market Data Feed Handler (Python):** An asynchronous websocket/REST engine for aggregating real-time Level 2/Level 3 order books and trades across dozens of cryptocurrency exchanges.
-2. **Quantitative Financial Models (Jupyter/Python):** A deep research repository containing implementations of PDE methods, Lévy processes, Fourier methods, and Kalman filters for alpha signal generation.
-3. **Ultra-Low Latency Execution Core (C++):** A wait-free, lock-free Single-Producer Single-Consumer (SPSC) ring buffer with huge page support to route orders between the Python inference cluster and the network interface card in nanoseconds.
-
----
-
-## Part I: Market Data Feed Handler
-
-Handles multiple cryptocurrency exchange data feeds and returns normalized and standardized results to client registered callbacks for events like Trades, Book updates, Ticker updates, etc. Utilizes websockets when possible, but can also poll data via REST endpoints if a websocket is not provided.
-
-### Supported Exchanges
-
-* AscendEX
-* Bequant
-* Bitfinex
-* bitFlyer
-* Bithumb
-* Bitstamp
-* Blockchain.com
-* Bybit
-* Binance (Standard, Delivery, Futures, US)
-* Bit.com
-* Bitget
-* BitMEX
-* Coinbase
-* Crypto.com
-* Delta
-* Deribit
-* dYdX
-* FMFW.io
-* EXX
-* Gate.io (Standard, Futures)
-* Gemini
-* HitBTC
-* Huobi (Standard, DM, Swap Coin-M and USDT-M)
-* Independent Reserve
-* Kraken (Standard, Futures)
-* KuCoin
-* OKCoin
-* OKX
-* Phemex
-* Poloniex
-* ProBit
-* Upbit
-
-### Basic Usage
-
-Create a `FeedHandler` object and add subscriptions. For the various data channels that an exchange supports, you can supply callbacks for data events, or use provided backends (described below) to handle the data for you. 
-
-```python
-from sentinel_statarb import FeedHandler
-from sentinel_statarb.exchanges import Coinbase, Bitfinex, Poloniex, Gemini
-from sentinel_statarb.defines import TICKER, TRADES, L2_BOOK
-
-fh = FeedHandler()
+**C++17 execution simulation · Python risk checks · ZeroMQ adapter · DuckDB batch logging**
 
-# ticker, trade, and book are user defined functions that
-# will be called when Ticker, Trade and Book updates are received
-ticker_cb = {TICKER: ticker}
-trade_cb = {TRADES: trade}
-gemini_cb = {TRADES: trade, L2_BOOK: book}
+Sentinel StatArb is a testable market-event pipeline for studying fast quote handling, repeated-signal control, and stop-limit behavior during sharp price moves. It includes a native C++ queue benchmark and a Python simulation with repeatable data checks. The examples use synthetic data; they do not place live orders.
 
-fh.add_feed(Coinbase(symbols=['BTC-USD'], channels=[TICKER], callbacks=ticker_cb))
-fh.add_feed(Bitfinex(symbols=['BTC-USD'], channels=[TICKER], callbacks=ticker_cb))
-fh.add_feed(Poloniex(symbols=['BTC-USDT'], channels=[TRADES], callbacks=trade_cb))
-fh.add_feed(Gemini(symbols=['BTC-USD', 'ETH-USD'], channels=[TRADES, L2_BOOK], callbacks=gemini_cb))
+## What is included
 
-fh.run()
+- **Native C++ engine simulation.** A single-producer/single-consumer (SPSC) ring uses atomics to move tick records between threads. The benchmark warms up before collecting throughput and sampled processing latency.
+- **Quote checks and signal control.** Repeated sequence numbers, old timestamps, stale quotes, and future timestamps are rejected. A dynamic debouncer lengthens its quiet period after a sharp move. Protective orders are checked on every valid quote, even when strategy signals are held back.
+- **OCO stop-limit model.** A stop and take-profit share one order state; after one fires, the other is cancelled. The default stop-limit price is offset by 5 basis points (bps) from the stop trigger.
+- **ZeroMQ message adapter.** Validated JSON tick messages can be sent using a pyzmq async socket. The adapter can use IPC or TCP endpoints supplied by the caller.
+- **DuckDB batch writer.** A bounded queue feeds one database-writing thread. Batches reduce per-tick overhead; a full queue applies back-pressure instead of silently dropping ticks.
+- **Repeatable experiments.** Test streams include duplicate quotes, out-of-order timestamps, stale messages, and a controlled 180 bps price gap. Results are saved as CSV/JSON and SVG diagrams.
 
-```
+> **Important limits:** the SPSC ring is an in-process lock-free queue; ZeroMQ is a separate IPC/network transport and is not described as lock-free. A 5 bps stop-limit offset is a price bound, not a fill guarantee. When a crash gaps farther than the offset, the order can trigger but remain unfilled. Benchmark rates depend on the machine and are not live-market claims.
 
-### National Best Bid/Offer (NBBO)
+## Quick start
 
-Sentinel StatArb provides a synthetic NBBO feed that aggregates the best bids and asks from the user-specified feeds.
+Use Python 3.10 or newer, a C++17 compiler, and CMake 3.16 or newer.
 
-```python
-from sentinel_statarb import FeedHandler
-from sentinel_statarb.exchanges import Coinbase, Gemini, Kraken
+    python -m venv .venv
+    # Linux / macOS:
+    source .venv/bin/activate
+    # Windows PowerShell:
+    # .venv\Scripts\Activate.ps1
+    python -m pip install --upgrade pip
+    python -m pip install -e ".[ipc,storage,dev]"
 
-def nbbo_update(symbol, bid, bid_size, ask, ask_size, bid_feed, ask_feed):
-    print(f'Pair: {symbol} Bid Price: {bid:.2f} Bid Size: {bid_size:.6f} Bid Feed: {bid_feed} Ask Price: {ask:.2f} Ask Size: {ask_size:.6f} Ask Feed: {ask_feed}')
+Build and test the C++ engine:
 
-def main():
-    f = FeedHandler()
-    f.add_nbbo([Coinbase, Kraken, Gemini], ['BTC-USD'], nbbo_update)
-    f.run()
+    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+    cmake --build build --parallel
+    ctest --test-dir build --output-on-failure
 
-```
+Run Python tests and repeatable experiments:
 
-### Supported Channels
+    python -m unittest discover -s tests -v
+    python scripts/run_experiments.py --ticks 100000 --repeats 3
+    python scripts/make_artifacts.py
 
-#### Market Data Channels (Public)
+The scripts run one unmeasured warm-up for each policy, then take the median of timed runs. Increase the data size for a heavier experiment:
 
-* `L1_BOOK` - Top of book
-* `L2_BOOK` - Price aggregated sizes. Some exchanges provide the entire depth, some provide a subset.
-* `L3_BOOK` - Price aggregated orders. Like the L2 book, some exchanges may only provide partial depth.
-* `TRADES` - Note this reports the taker's side, even for exchanges that report the maker side.
-* `TICKER`
-* `FUNDING`
-* `OPEN_INTEREST` - Open interest data.
-* `LIQUIDATIONS`
-* `INDEX`
-* `CANDLES` - Candlestick / K-Line data.
+    python scripts/run_experiments.py --ticks 1000000 --repeats 3
+    python scripts/run_experiments.py --ticks 10000000 --repeats 3
 
-#### Authenticated Data Channels
+Run the C++ benchmark twice at the selected size; only the second run is saved as the measurement:
 
-* `ORDER_INFO` - Order status updates
-* `TRANSACTIONS` - Real-time updates on account deposits and withdrawals
-* `BALANCES` - Updates on wallet funds
-* `FILLS` - User's executed trades
+    bash scripts/run_cpp_benchmark.sh 10000000 artifacts/cpp_benchmark_10m.json
 
-### Backends & Storage
+Measure ZeroMQ IPC round trips (not one-way latency):
 
-Sentinel StatArb supports `backend` callbacks that will write directly to storage or other interfaces.
+    python scripts/benchmark_zmq_ipc.py --ticks 20000 --warmup 2000 --out artifacts/zmq_ipc_benchmark.json
 
-Supported Backends:
+Run the DuckDB persistence stress test. The script does one full warm-up run, then writes a separate measured database and checks the row count and sequence range:
 
-* Redis (Streams and Sorted Sets)
-* Arctic
-* ZeroMQ
-* UDP Sockets
-* TCP Sockets
-* Unix Domain Sockets
-* InfluxDB v2
-* MongoDB
-* Kafka
-* RabbitMQ
-* PostgreSQL
-* QuasarDB
-* GCP Pub/Sub
-* QuestDB
+    python scripts/benchmark_storage.py --ticks 10000000 --batch-size 10000 --out artifacts/stress_ticks.duckdb
 
----
+The storage test needs the storage extra. It creates a local database file; do not commit that file. Smaller counts are useful for quick checks.
 
-## Part II: Quantitative Financial Models & Numerical Methods
+## Diagrams and results
 
-This module contains research environments based on different topics in the area of quantitative finance, specifically targeting topics that are mathematically rigorous such as PDE methods, Lévy processes, Fourier methods, and Kalman filters.
+### System map
 
-### Core Research Areas
+![Sentinel StatArb system map](docs/assets/architecture.svg)
 
-1.1) **Black-Scholes numerical methods**
-*(lognormal distribution, change of measure, Monte Carlo, Binomial Method)*.
+### Quote validation and risk checks
 
-1.2) **SDE simulation and statistics**
-*(paths generation, Confidence intervals, Hypothesis testing, Geometric Brownian motion, Cox-Ingersoll-Ross process, Euler Maruyama Method, parameters estimation)*
+![Execution and risk flow](docs/assets/execution-flow.svg)
 
-1.3) **Fourier inversion methods**
-*(inversion formula, numerical inversion, option pricing, FFT, Lewis formula)*
+### Policy comparison
 
-1.4) **SDE, Heston model**
-*(correlated Brownian motions, Heston paths, Heston distribution, characteristic function, option pricing)*
+![Experiment dashboard](docs/assets/experiment-dashboard.svg)
 
-1.5) **SDE, Lévy processes**
-*(Merton, Variance Gamma, NIG, path generation, parameter estimation)*
+### Native C++ benchmark
 
-2.1) **The Black-Scholes PDE**
-*(PDE discretization, Implicit Method, sparse matrix tutorial)*
+![C++ measured processing latency](docs/assets/cpp-benchmark.svg)
 
-2.2) **Exotic options**
-*(Binary options, Barrier options, Asian options)*
+### Flash-crash example
 
-2.3) **American options**
-*(PDE, Early exercise, Binomial Method, Longstaff-Schwartz, Perpetual put)*
+![Flash-crash analysis](docs/assets/flash-crash-analysis.svg)
 
-3.1) **Merton Jump-Diffusion PIDE**
-*(Implicit-Explicit discretization, discrete convolution, model limitations, Monte Carlo, Fourier inversion, semi-closed formula)*
+### Stop-limit gap sweep
 
-3.2) **Variance Gamma PIDE**
-*(approximated jump-diffusion PIDE, Monte Carlo, Fourier inversion, Comparison with Black-Scholes)*
+![Stop-limit gap sweep](docs/assets/oco-gap-sweep.svg)
 
-3.3) **Normal Inverse Gaussian PIDE**
-*(approximated jump-diffusion PIDE, Monte Carlo, Fourier inversion, properties of the Lévy measure)*
+### ZeroMQ IPC test
 
-4.1) **Pricing with transaction costs**
-*(Davis-Panas-Zariphopoulou model, singular control problem, HJB variational inequality, indifference pricing, binomial tree, performances)*
+![Measured ZeroMQ IPC latency](docs/assets/zmq-ipc-latency.svg)
 
-4.2) **Volatility smile and model calibration**
-*(Volatility smile, root finder methods, calibration methods)*
+The checked-in reports include experiment_summary.json, experiment_metrics.csv, oco_gap_sweep.csv, cpp_benchmark_10m.json, and zmq_ipc_benchmark.json. The image script refreshes the SVGs from the experiment report. There is no main.png; the project uses the smaller SVG reports above.
 
-5.1) **Linear regression and Kalman filter**
-*(market data cleaning, Linear regression methods, Kalman filter design, choice of parameters)*
+## Configuration notes
 
-5.2) **Kalman auto-correlation tracking - AR(1) process**
-*(Autoregressive process, estimation methods, Kalman filter, Kalman smoother, variable autocorrelation tracking)*
+DynamicDebouncer takes a base quiet period, a maximum quiet period, and a move size (in bps) that starts extending the wait. OCOStopLimit accepts entry price, side, stop distance, take-profit distance, and limit offset. Quote-age limits are set on ExecutionEngine. The ZeroMQ adapter accepts an existing async socket, so endpoint and bind/connect choices remain with the caller.
 
-5.3) **Volatility tracking**
-*(Heston simulation, hypothesis testing, distribution fitting, estimation methods, GARCH(1,1), Kalman filter, Kalman smoother)*
+The IPC result is a process-to-process round trip and includes Python and operating-system scheduling. It does not measure one-way latency. AsyncDuckDBTickLogger has start, log, log_many, and close methods. Call close to flush the final partial batch. If DuckDB is missing or the writer fails, the logger raises an error instead of claiming records were stored.
 
-6.1) **Ornstein-Uhlenbeck process and applications**
-*(parameters estimation, hitting time, Vasicek PDE, Kalman filter, trading strategy)*
+## Tests
 
-7.1) **Classical MVO**
-*(mean variance optimization, quadratic programming, only long and long-short, closed formula)*
+The suite covers quote validation, sequence/timestamp ordering, stale/future quote rejection, adaptive debounce behavior, the 5 bps offset, one-shot OCO behavior, large-gap non-fill behavior, deterministic experiment output, ZeroMQ message round-trip, and bounded async batching. A separate DuckDB test runs when the optional dependency is installed. The C++ test checks ring capacity and ordering across 500,000 values, debounce rules, and OCO stop-limit math.
 
-A.1) **Appendix: Linear equations**
-*(LU, Jacobi, Gauss-Seidel, SOR, Thomas)*
+Run the main checks:
 
-A.2) **Appendix: Code optimization**
-*(cython, C code)*
+    bash scripts/run_checks.sh
 
-A.3) **Appendix: Review of Lévy processes theory**
-*(basic and important definitions, derivation of the pricing PIDE)*
+The GitHub Actions workflow installs the optional dependencies, runs the core tests and benchmarks, performs a 10-million-row DuckDB persistence test, and saves the reports as build artifacts.
 
-### Environment Setup
+## Files
 
-You can recreate the tested conda virtual environment with:
+- sentinel_runtime/ — Python quote checks, debouncing, risk, ZeroMQ, and DuckDB modules
+- cpp/ — C++17 simulation, SPSC ring, and native tests
+- scripts/ — experiments, asset generation, and benchmarks
+- tests/ — Python unit and optional storage tests
+- artifacts/ — experiment CSV/JSON reports (no database file)
+- docs/assets/ — SVG architecture and analysis images
 
-```bash
-conda env create -f environment.yml
-pip install -e .
+## License and author
 
-```
+Project author: **Pirate-Emperor**.
 
-Alternatively, to run the environment via Docker:
-
-```bash
-docker-compose up --build -d
-
-```
-
----
-
-## Part III: Ultra-Low Latency Execution Queue (SPSC)
-
-A single producer single consumer wait-free and lock-free fixed-size queue written in C++11. This implementation is designed to bridge the network thread and the trading algorithm thread with deterministic sub-microsecond latency.
-
-### Example
-
-```cpp
-#include "SPSCQueue.h"
-#include <iostream>
-#include <thread>
-
-SPSCQueue<int> q(1);
-auto t = std::thread([&] {
-  while (!q.front());
-  std::cout << *q.front() << std::endl;
-  q.pop();
-});
-q.push(1);
-t.join();
-
-```
-
-### Usage API
-
-* `SPSCQueue<T>(size_t capacity);`
-Create a `SPSCQueue` holding items of type `T` with capacity `capacity`. Capacity needs to be at least 1.
-* `void emplace(Args &&... args);`
-Enqueue an item using inplace construction. Blocks if queue is full.
-* `bool try_emplace(Args &&... args);`
-Try to enqueue an item using inplace construction. Returns `true` on success and `false` if queue is full.
-* `void push(const T &v);`
-Enqueue an item using copy construction. Blocks if queue is full.
-* `T *front();`
-Return pointer to front of queue. Returns `nullptr` if queue is empty.
-* `void pop();`
-Dequeue first item of queue. You must ensure that the queue is non-empty before calling pop. This means that `front()` must have returned a non-`nullptr` before each call to `pop()`. Requires `std::is_nothrow_destructible<T>::value == true`.
-
-Only a single writer thread can perform enqueue operations and only a single reader thread can perform dequeue operations. Any other usage is invalid.
-
-### Huge Page Support
-
-In addition to supporting custom allocation through the standard custom allocator interface, this library also supports standard proposal P0401R3 (Providing size feedback in the Allocator interface). This allows convenient use of huge pages without wasting any allocated space.
-
-Below is an example huge page allocator for Linux:
-
-```cpp
-#include <sys/mman.h>
-
-template <typename T> struct Allocator {
-  using value_type = T;
-
-  struct AllocationResult {
-    T *ptr;
-    size_t count;
-  };
-
-  size_t roundup(size_t n) { return (((n - 1) >> 21) + 1) << 21; }
-
-  AllocationResult allocate_at_least(size_t n) {
-    size_t count = roundup(sizeof(T) * n);
-    auto p = static_cast<T *>(mmap(nullptr, count, PROT_READ | PROT_WRITE,
-                                   MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
-                                   -1, 0));
-    if (p == MAP_FAILED) {
-      throw std::bad_alloc();
-    }
-    return {p, count / sizeof(T)};
-  }
-
-  void deallocate(T *p, size_t n) { munmap(p, roundup(sizeof(T) * n)); }
-};
-
-```
-
-### Implementation & Physics
-
-The underlying implementation is based on a ring buffer.
-
-Care has been taken to make sure to avoid any issues with **false sharing** (MESI protocol bouncing). The head and tail indices are aligned and padded to the false sharing range (cache line size). Additionally the slots buffer is padded with the false sharing range at the beginning and end; this prevents false sharing with any adjacent allocations.
-
-This implementation has higher throughput than a typical concurrent ring buffer by locally caching the head and tail indices in the writer and reader respectively. The caching increases throughput by reducing the amount of cache coherency traffic across the CPU bus.
-
-To understand how that works first consider a read operation in absence of caching: the head index (read index) needs to be updated and thus that cache line is loaded into the L1 cache in exclusive state. The tail (write index) needs to be read in order to check that the queue is not empty and is thus loaded into the L1 cache in shared state. Since a queue write operation needs to read the head index it's likely that a write operation requires some cache coherency traffic to bring the head index cache line back into exclusive state. In the worst case there will be one cache line transition from shared to exclusive for every read and write operation.
-
-Next consider a queue reader that caches the tail index: if the cached tail index indicates that the queue is empty, then load the tail index into the cached tail index. If the queue was non-empty multiple read operations up until the cached tail index can complete without stealing the writer's tail index cache line's exclusive state. Cache coherency traffic is therefore drastically reduced. An analogous argument can be made for the queue write operation.
-
-## License
-
-This project is licensed under the Pirate-Emperor License. See the [LICENSE](LICENSE) file for details.
-
-## Author
-
-**Pirate-Emperor**
-
-[![Twitter](https://skillicons.dev/icons?i=twitter)](https://twitter.com/PirateKingRahul)
-[![Discord](https://skillicons.dev/icons?i=discord)](https://discord.com/users/1200728704981143634)
-[![LinkedIn](https://skillicons.dev/icons?i=linkedin)](https://www.linkedin.com/in/piratekingrahul)
-
-[![Reddit](https://img.shields.io/badge/Reddit-FF5700?style=for-the-badge&logo=reddit&logoColor=white)](https://www.reddit.com/u/PirateKingRahul)
-[![Medium](https://img.shields.io/badge/Medium-42404E?style=for-the-badge&logo=medium&logoColor=white)](https://medium.com/@piratekingrahul)
-
-- GitHub: [Pirate-Emperor](https://github.com/Pirate-Emperor)
-- Reddit: [PirateKingRahul](https://www.reddit.com/u/PirateKingRahul/)
-- Twitter: [PirateKingRahul](https://twitter.com/PirateKingRahul)
-- Discord: [PirateKingRahul](https://discord.com/users/1200728704981143634)
-- LinkedIn: [PirateKingRahul](https://www.linkedin.com/in/piratekingrahul)
-- Skype: [Join Skype](https://join.skype.com/invite/yfjOJG3wv9Ki)
-- Medium: [PirateKingRahul](https://medium.com/@piratekingrahul)
-
-Thank you for visiting this project!
-
----
+The license files are kept separate because they contain different license terms. Required copyright and license notices remain in those files and in the relevant source files.

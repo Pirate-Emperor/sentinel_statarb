@@ -1,0 +1,18 @@
+{
+  "engine": "sentinel_cpp_simulation",
+  "ticks": "10000000",
+  "warmup_ticks": "10000",
+  "measured_ticks": "9990000",
+  "queue_lock_free_atomics": "true",
+  "signals_accepted": "999980",
+  "signals_debounced": "9000020",
+  "stop_triggers": "1",
+  "stop_limit_marketable_at_gap": "false",
+  "invalid_ticks": "0",
+  "measured_throughput_events_per_second": "34553787.28",
+  "sampled_processing_p50_us": "0.030",
+  "sampled_processing_p95_us": "0.035",
+  "sampled_processing_p99_us": "0.043",
+  "latency_sample_count": "19980",
+  "note": "Local synthetic simulation. Rate and sampled processing time depend on machine; this is not an end-to-end latency test."
+}

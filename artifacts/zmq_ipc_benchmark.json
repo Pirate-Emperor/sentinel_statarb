@@ -1,0 +1,16 @@
+{
+  "transport": "ZeroMQ ipc:// PAIR socket",
+  "measurement": "process-to-process round-trip; includes Python and scheduler overhead",
+  "warmup_messages": 2000,
+  "measured_messages": 20000,
+  "payload_check": "passed",
+  "mean_round_trip_us": 131.31742255,
+  "p50_round_trip_us": 96.914,
+  "p95_round_trip_us": 294.409,
+  "p99_round_trip_us": 700.425,
+  "max_round_trip_us": 4953.46,
+  "throughput_round_trips_per_second": 7559.34646651327,
+  "timed_sample_count": 20000,
+  "measured_duration_ms": 2645.731359,
+  "note": "Machine-dependent round-trip; not one-way latency and not a lock-free guarantee."
+}

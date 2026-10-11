@@ -1,0 +1,12 @@
+.git
+.venv
+venv
+__pycache__
+*.py[cod]
+build
+build-cpp
+cmake-build-*
+.pytest_cache
+.coverage
+*.duckdb
+*.duckdb.wal

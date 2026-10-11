@@ -1,14 +1,7 @@
-version: '3.8'
-
-services:
-  jupyterlab:
-    image: fmnm
-    build: .
-    ports:
-      - "8888:8888"
-    volumes:
-      - .:/workspace
-    command: ["jupyter", "nbclassic", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''"]
-    container_name: Numeric_Finance
-
-
+services:
+  sentinel-checks:
+    build: .
+    image: sentinel-statarb:local
+    command: ["bash", "scripts/run_checks.sh"]
+    volumes:
+      - ./artifacts:/workspace/artifacts

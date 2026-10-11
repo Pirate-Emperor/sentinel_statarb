@@ -150,3 +150,11 @@ cmake-build-*/
 .idea/
 .vscode/
 .cache/
+# Sentinel StatArb build products and local stress databases
+build/
+build-cpp/
+cmake-build-*/
+*.duckdb
+*.duckdb.wal
+*.sqlite
+*.sqlite3
