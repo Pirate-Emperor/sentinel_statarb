@@ -22,8 +22,17 @@ class DebouncerTests(unittest.TestCase):
         self.assertFalse(d.accept("X",1300000,98.0));self.assertFalse(d.accept("X",2000000,98.0));self.assertTrue(d.accept("X",3300000,98.0))
     def test_cooldown_is_independent_per_symbol(self):
         d=DynamicDebouncer(100,100,10.0);self.assertTrue(d.accept("X",1000,100.0));self.assertTrue(d.accept("Y",1000,100.0))
+    def test_rejects_backwards_timestamps(self):
+        d=DynamicDebouncer(100,100,10.0)
+        self.assertTrue(d.accept("X",1000,100.0))
+        with self.assertRaises(ValueError):
+            d.accept("X",999,101.0)
+        self.assertTrue(d.accept("X",1100,100.0))
 
 class OcoTests(unittest.TestCase):
+    def test_rejects_impossible_stop_limit_offsets(self):
+        with self.assertRaises(ValueError): OCOStopLimit(100.0, "long", 25.0, 50.0, 10_000.0)
+        with self.assertRaises(ValueError): OCOStopLimit(100.0, "long", 10_000.0, 50.0, 5.0)
     def test_long_stop_limit_has_exact_five_bps_offset(self):
         order=OCOStopLimit(100.0,"long",25.0,50.0,5.0);event=order.observe("X",99.70)
         self.assertIsNotNone(event);self.assertEqual(event.kind,"stop_triggered")
@@ -55,6 +64,8 @@ class EngineTests(unittest.TestCase):
         self.assertIsNotNone(r.risk_event);self.assertEqual(r.risk_event.kind,"stop_triggered")
 
 class ExperimentsTests(unittest.TestCase):
+    def test_experiment_rejects_non_positive_tick_count(self):
+        with self.assertRaises(ValueError): run_experiments(0, 1, 1)
     def test_stream_is_reproducible_and_contains_injected_duplicates(self):
         self.assertEqual(make_stream(500,42),make_stream(500,42));self.assertGreater(len(make_stream(500,42)),500)
     def test_oco_gap_sweep_matches_expected_fill_boundaries(self):
@@ -77,8 +88,12 @@ class FakeDuckDBLoggerTests(unittest.IsolatedAsyncioTestCase):
         from sentinel_runtime.duckdb_logger import AsyncDuckDBTickLogger
         written=[];sizes=[]
         class Connection:
-            def execute(self,query): self.query=query
-            def executemany(self,query,rows): sizes.append(len(rows));written.extend(list(rows))
+            def execute(self, query, parameters=None):
+                self.query = query
+                if query.startswith("INSERT INTO ticks"):
+                    rows = list(zip(*parameters))
+                    sizes.append(len(rows))
+                    written.extend(rows)
             def close(self): pass
         fake=types.SimpleNamespace(connect=lambda path:Connection())
         with tempfile.TemporaryDirectory() as d,patch.dict(sys.modules,{"duckdb":fake}):

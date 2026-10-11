@@ -1,2 +1,0 @@
-# Install optional features through the project extras:
-# python -m pip install -e ".[ipc,storage,dev]"

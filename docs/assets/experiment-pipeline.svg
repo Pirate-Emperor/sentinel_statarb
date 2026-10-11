@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520">
+<rect width="1200" height="520" fill="#f2f5f7"/>
+<text x="40" y="48" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#17685c">EXPERIMENT PIPELINE / REPEATABLE STEPS</text>
+<text x="40" y="88" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="#1b2d33">From synthetic quotes to checked reports</text>
+<rect x="40" y="150" width="200" height="150" rx="12" fill="#ffffff" stroke="#8ba7b2" stroke-width="2"/>
+<text x="54" y="184" font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="#17685c">1 · GENERATE</text>
+<text x="54" y="225" font-family="Arial,sans-serif" font-size="14" font-weight="400" fill="#23323a">Seeded quote stream</text>
+<text x="54" y="252" font-family="Arial,sans-serif" font-size="14" font-weight="400" fill="#23323a">Known 180 bps gap</text>
+<rect x="270" y="150" width="200" height="150" rx="12" fill="#ffffff" stroke="#8ba7b2" stroke-width="2"/>
+<text x="284" y="184" font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="#17685c">2 · INJECT</text>
+<text x="284" y="225" font-family="Arial,sans-serif" font-size="14" font-weight="400" fill="#23323a">Repeated sequences</text>
+<text x="284" y="252" font-family="Arial,sans-serif" font-size="14" font-weight="400" fill="#23323a">Old / stale quotes</text>
+<rect x="500" y="150" width="200" height="150" rx="12" fill="#ffffff" stroke="#8ba7b2" stroke-width="2"/>
+<text x="514" y="184" font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="#17685c">3 · COMPARE</text>
+<text x="514" y="225" font-family="Arial,sans-serif" font-size="14" font-weight="400" fill="#23323a">No / fixed / dynamic</text>
+<text x="514" y="252" font-family="Arial,sans-serif" font-size="14" font-weight="400" fill="#23323a">debounce policies</text>
+<rect x="730" y="150" width="200" height="150" rx="12" fill="#ffffff" stroke="#8ba7b2" stroke-width="2"/>
+<text x="744" y="184" font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="#17685c">4 · MEASURE</text>
+<text x="744" y="225" font-family="Arial,sans-serif" font-size="14" font-weight="400" fill="#23323a">Warm-up excluded</text>
+<text x="744" y="252" font-family="Arial,sans-serif" font-size="14" font-weight="400" fill="#23323a">Timed repeats</text>
+<rect x="960" y="150" width="200" height="150" rx="12" fill="#ffffff" stroke="#8ba7b2" stroke-width="2"/>
+<text x="974" y="184" font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="#17685c">5 · CHECK</text>
+<text x="974" y="225" font-family="Arial,sans-serif" font-size="14" font-weight="400" fill="#23323a">Counts + price rules</text>
+<text x="974" y="252" font-family="Arial,sans-serif" font-size="14" font-weight="400" fill="#23323a">CSV / JSON / SVG</text>
+<path d="M240 225 h24 l-7 -6 m7 6 l-7 6" fill="none" stroke="#506a73" stroke-width="2.5"/>
+<path d="M470 225 h24 l-7 -6 m7 6 l-7 6" fill="none" stroke="#506a73" stroke-width="2.5"/>
+<path d="M700 225 h24 l-7 -6 m7 6 l-7 6" fill="none" stroke="#506a73" stroke-width="2.5"/>
+<path d="M930 225 h24 l-7 -6 m7 6 l-7 6" fill="none" stroke="#506a73" stroke-width="2.5"/>
+<rect x="40" y="354" width="1120" height="93" rx="12" fill="#e3eee9" stroke="#b5d1c6" stroke-width="2"/>
+<text x="64" y="391" font-family="Arial,sans-serif" font-size="15" font-weight="700" fill="#17685c">REPEATABLE INPUTS</text>
+<text x="64" y="422" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#23323a">Same seed and count; each policy gets one warm-up and three timed runs.</text>
+<text x="40" y="489" font-family="Arial,sans-serif" font-size="15" font-weight="400" fill="#52656d">All results are simulations. They do not place live orders or guarantee fills.</text>
+</svg>

@@ -74,6 +74,7 @@ def oco_gap_sweep() -> list[dict[str, float | bool]]:
 
 def run_experiments(count: int = 100_000, repeats: int = 3, seed: int = 20261011) -> dict:
     """Run one warm-up, then report medians of timed repeats."""
+    if count < 1: raise ValueError("count must be positive")
     if repeats < 1: raise ValueError("repeats must be at least 1")
     event_count=count+max(0,(count-1)//97)
     policies=("no debounce","fixed debounce","dynamic debounce")

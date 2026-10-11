@@ -41,6 +41,7 @@ class DynamicDebouncer:
         self.stress_bps = stress_bps
         self._last_signal_ns: dict[str, int] = {}
         self._last_mid: dict[str, float] = {}
+        self._last_timestamp_ns: dict[str, int] = {}
         self._blocked_until_ns: dict[str, int] = {}
     def cooldown_for(self, symbol: str, mid: float) -> int:
         previous = self._last_mid.get(symbol)
@@ -48,7 +49,12 @@ class DynamicDebouncer:
         move_bps = abs(mid - previous) / previous * 10_000.0
         return min(self.max_cooldown_ns, int(self.base_cooldown_ns * (1.0 + move_bps / self.stress_bps)))
     def accept(self, symbol: str, timestamp_ns: int, mid: float) -> bool:
-        if timestamp_ns < 0 or not math.isfinite(mid) or mid <= 0: raise ValueError("timestamp must be non-negative and mid must be positive")
+        if timestamp_ns < 0 or not math.isfinite(mid) or mid <= 0:
+            raise ValueError("timestamp must be non-negative and mid must be positive")
+        previous_timestamp = self._last_timestamp_ns.get(symbol)
+        if previous_timestamp is not None and timestamp_ns < previous_timestamp:
+            raise ValueError("timestamps must be monotonic for each symbol")
+        self._last_timestamp_ns[symbol] = timestamp_ns
         previous_mid = self._last_mid.get(symbol)
         cooldown = self.cooldown_for(symbol, mid)
         if previous_mid is not None:
@@ -74,7 +80,8 @@ class OCOStopLimit:
         values = (entry_price, stop_bps, take_profit_bps, limit_offset_bps)
         if not all(math.isfinite(v) for v in values): raise ValueError("order parameters must be finite")
         if entry_price <= 0 or stop_bps <= 0 or take_profit_bps <= 0: raise ValueError("entry and distances must be positive")
-        if limit_offset_bps < 0 or side not in ("long", "short"): raise ValueError("invalid offset or side")
+        if limit_offset_bps < 0 or limit_offset_bps >= 10_000 or stop_bps >= 10_000 or side not in ("long", "short"):
+            raise ValueError("stop distance must be below 10000 bps and offset must be in [0, 10000) bps")
         self.entry_price, self.side = entry_price, side
         self.stop_bps, self.take_profit_bps, self.limit_offset_bps = stop_bps, take_profit_bps, limit_offset_bps
         if side == "long":

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Generate readable SVG diagrams from the saved experiment reports."""
-import html,json
+import html,json,random
 from pathlib import Path
 R=Path(__file__).resolve().parents[1];A=R/"docs"/"assets";A.mkdir(parents=True,exist_ok=True)
 def t(x,y,s,size=18,color="#eaf0f8",weight=400):
@@ -33,19 +33,56 @@ def dashboard(d):
     s += [rect(40,510,1120,45,"#242b35","#4e5d70",8),t(60,538,"One stop triggered per policy; the 180 bps gap exceeded the 5 bps limit offset.",15,"#ffbc78",700)]
     save("experiment-dashboard.svg",1200,580,s)
 def charts(d):
-    # A compact price path makes the injected crash easy to compare to the stop and limit.
-    s=['<rect width="1200" height="500" fill="#111827"/>',t(40,50,"FLASH-CRASH REPLAY / SYNTHETIC",16,"#71d8bf",700),t(40,90,"180 bps gap crosses the stop, then moves past the limit",25,"#f4f7fb",700),t(40,122,f"{d['base_tick_count']:,} base ticks; jump at 55% of the stream",16,"#aab8ce")]
-    s += ['<path d="M80 190 H1135 M80 245 H1135 M80 300 H1135 M80 355 H1135" stroke="#263348"/>','<path d="M80 180 H650 V390 H1135" fill="none" stroke="#64c8e6" stroke-width="4"/>','<path d="M80 250 H1135" stroke="#ffbd78" stroke-width="3" stroke-dasharray="10 7"/>','<path d="M80 270 H1135" stroke="#f28f7d" stroke-width="3" stroke-dasharray="5 5"/>',t(90,430,"PRICE",14,"#64c8e6",700),t(200,430,"STOP 99.75",14,"#ffbd78",700),t(390,430,"SELL LIMIT 99.7001",14,"#f28f7d",700),t(40,475,"The synthetic crash falls below the sell limit: the order triggers but cannot trade at this price.",15,"#c8d2e1")]
-    save("flash-crash-analysis.svg",1200,500,s)
-    rows=d["oco_gap_sweep"];gaps=sorted({float(q["gap_bps"]) for q in rows});offs=sorted({float(q["offset_bps"]) for q in rows});lookup={(float(q["offset_bps"]),float(q["gap_bps"])):bool(q["marketable"]) for q in rows}
-    s=['<rect width="1200" height="480" fill="#f2f5f8"/>',t(40,50,"OCO STOP-LIMIT / GAP SWEEP",16,"#177362",700),t(40,90,"Can the limit trade after a gap?",28,"#172c34",700),t(40,124,"YES means marketable in this simple price check; it does not guarantee an execution.",15,"#52656d")]
+    # Build the plotted path from the same seeded synthetic stream used by experiments.py.
+    count=int(d["base_tick_count"]);crash_at=max(1,int(count*float(d["crash_at_fraction"])))
+    rng=random.Random(int(d["seed"]));stride=max(1,count//180);points=[]
+    for i in range(count):
+        regime=98.2 if i>=crash_at else 100.0
+        price=regime*(1.0+rng.uniform(-0.000025,0.000025))
+        if i%stride==0 or i in (crash_at-1,crash_at,count-1):points.append((i,price))
+    x0,x1,y0,y1=82.0,1110.0,170.0,385.0
+    low,high=97.8,100.4
+    def px(i):return x0+(x1-x0)*i/max(1,count-1)
+    def py(price):return y1-(price-low)/(high-low)*(y1-y0)
+    trace=" ".join(("M" if index==0 else "L")+f"{px(i):.2f},{py(price):.2f}" for index,(i,price) in enumerate(points))
+    s=['<rect width="1200" height="520" fill="#101827"/>',
+        t(40,45,"FLASH-CRASH REPLAY / SEEDED SYNTHETIC PRICES",16,"#72d9be",700),
+        t(40,84,"The 180 bps gap moves through the stop-limit price",27,"#f4f7fb",700),
+        t(40,116,f"{count:,} base ticks · price step at {100*float(d['crash_at_fraction']):.0f}% of the stream",15,"#aab8ce")]
+    for tick in (100.0,99.0,98.0):
+        y=py(tick)
+        s += [f'<path d="M{x0} {y:.2f} H{x1}" stroke="#263348" stroke-width="1"/>',
+              t(24,y+5,f"{tick:.0f}",13,"#aab8ce")]
+    stop=100.0*(1.0-25.0/10000.0);limit=stop*(1.0-5.0/10000.0)
+    s += [f'<path d="M{x0} {py(stop):.2f} H{x1}" stroke="#ffbd78" stroke-width="2" stroke-dasharray="10 7"/>',
+          f'<path d="M{x0} {py(limit):.2f} H{x1}" stroke="#f28f7d" stroke-width="2" stroke-dasharray="4 5"/>',
+          f'<path d="{trace}" fill="none" stroke="#64c8e6" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>',
+          t(x0,415,"START",13,"#aab8ce"),t(px(crash_at),415,"GAP",13,"#f28f7d",700),
+          t(x1-35,415,"END",13,"#aab8ce"),
+          rect(80,440,235,42,"#222f40","#40536c",7),
+          t(96,467,f"STOP  {stop:.2f}",14,"#ffbd78",700),
+          rect(332,440,285,42,"#222f40","#40536c",7),
+          t(348,467,f"SELL LIMIT  {limit:.4f}",14,"#f28f7d",700),
+          rect(634,440,500,42,"#222f40","#40536c",7),
+          t(650,467,"Observed price after gap: 98.20 · not marketable",14,"#f3f6fb",700),
+          t(40,505,"Synthetic replay only; it shows why a stop trigger cannot guarantee a fill.",14,"#c8d2e1")]
+    save("flash-crash-analysis.svg",1200,520,s)
+    rows=d["oco_gap_sweep"];gaps=sorted({float(q["gap_bps"]) for q in rows});offs=sorted({float(q["offset_bps"]) for q in rows})
+    lookup={(float(q["offset_bps"]),float(q["gap_bps"])):bool(q["marketable"]) for q in rows}
+    s=['<rect width="1200" height="480" fill="#f2f5f8"/>',
+       t(40,50,"OCO STOP-LIMIT / GAP SWEEP",16,"#177362",700),
+       t(40,90,"Can the limit trade after a gap?",28,"#172c34",700),
+       t(40,124,"YES means marketable in this price check; it does not guarantee an execution.",15,"#52656d")]
     x0,y0,cw,ch=220,165,110,60
     for j,g in enumerate(gaps):s.append(t(x0+j*cw+cw/2,151,f"{g:g}",14,"#52656d",700))
     for i,o in enumerate(offs):
         y=y0+i*ch;s.append(t(50,y+34,f"Offset {o:g} bps",16,"#172c34",700))
         for j,g in enumerate(gaps):
-            ok=lookup[(o,g)];s += [rect(x0+j*cw,y,cw-5,ch-5,"#bfead9" if ok else "#f7d8ce","#2e9b78" if ok else "#d5806d",6),t(x0+j*cw+35,y+34,"YES" if ok else "NO",14,"#194a40" if ok else "#8e3e32",700)]
+            ok=lookup[(o,g)]
+            s += [rect(x0+j*cw,y,cw-5,ch-5,"#bfead9" if ok else "#f7d8ce","#2e9b78" if ok else "#d5806d",6),
+                  t(x0+j*cw+35,y+34,"YES" if ok else "NO",14,"#194a40" if ok else "#8e3e32",700)]
     save("oco-gap-sweep.svg",1200,480,s)
+
 def latency(name,report,kind):
     d=json.loads(report.read_text())
     if kind=="zmq":
@@ -53,7 +90,7 @@ def latency(name,report,kind):
         title="ZERO MQ IPC / PROCESS-TO-PROCESS ROUND TRIP";sub=f"{d['measured_messages']:,} measured messages after {d['warmup_messages']:,} warm-up messages"
     else:
         values=[("P50",float(d["sampled_processing_p50_us"])),("P95",float(d["sampled_processing_p95_us"])),("P99",float(d["sampled_processing_p99_us"]))]
-        title="NATIVE C++ / 10M TICK BENCHMARK";sub=f"{int(d['measured_ticks']):,} measured ticks · {float(d['measured_throughput_events_per_second']):,.0f} events/s"
+        title=f"NATIVE C++ / {int(d.get('ticks', d.get('measured_ticks', 0))):,} TICK RUN";sub=f"{int(d['measured_ticks']):,} measured ticks after {int(d.get('warmup_ticks', 0)):,} warm-up · {float(d['measured_throughput_events_per_second']):,.0f} events/s"
     cols=["#5a9bd8","#df9c47","#ca6a66"];mx=max(v for _,v in values) or 1
     s=['<rect width="1100" height="430" fill="#101827"/>',t(40,50,title,15,"#72d9be",700),t(40,91,sub,21,"#f3f6fb",700)]
     for i,((label,v),c) in enumerate(zip(values,cols)):
@@ -61,10 +98,118 @@ def latency(name,report,kind):
     note="Round trip includes Python and scheduler time; not one-way latency." if kind=="zmq" else "Processing latency is sampled; timings depend on the machine."
     s += [rect(40,375,1020,35,"#202c3d","#40536c",8),t(60,399,note,15,"#c8d2e1")]
     save(name,1100,430,s)
+def data_quality(d):
+    p=next(row for row in d["policies"] if row["policy"]=="dynamic debounce")
+    total=int(p["input_events"])
+    valid=int(p["accepted_signals"])+int(p["debounced_signals"])
+    rejected=total-valid
+    passed_w=1070*valid/total if total else 0
+    counts=[
+        ("Duplicate sequence",int(p["duplicate_sequences"]),"#d97b68"),
+        ("Old timestamp",int(p["out_of_order_timestamps"]),"#dfaa4a"),
+        ("Stale quote",int(p["stale_quotes"]),"#9b87d8"),
+        ("Future quote",int(p["future_quotes"]),"#62b6d7"),
+    ]
+    parts=['<rect width="1200" height="640" fill="#f3f6f8"/>',
+        t(40,48,"DATA QUALITY / REJECTED QUOTE COUNTS",16,"#17685c",700),
+        t(40,88,"Every event is accounted for before signal control",28,"#1b2d33",700),
+        rect(40,118,1120,168,"#ffffff","#d6e0e5"),
+        t(64,157,"INPUT STREAM",15,"#17685c",700),
+        t(64,188,f"{total:,} events",25,"#1b2d33",700),
+        rect(64,205,1070,28,"#e7edf1","#e7edf1",6),
+        rect(64,205,passed_w,28,"#4aa889","#4aa889",6),
+        t(64,257,f"Passed quote checks: {valid:,} ({100*valid/total:.2f}%)",16,"#17685c",700),
+        t(650,257,f"Rejected before signal: {rejected:,} ({100*rejected/total:.2f}%)",16,"#a24f41",700)]
+    for i,(label,count,color) in enumerate(counts):
+        x=40+i*280
+        parts += [rect(x,306,250,96,"#ffffff","#d6e0e5"),
+            t(x+16,339,label,14,color,700),
+            t(x+16,378,f"{count:,}",27,"#1b2d33",700)]
+    accepted=int(p["accepted_signals"]);held=int(p["debounced_signals"])
+    accepted_w=1070*accepted/valid if valid else 0
+    parts += [rect(40,424,1120,174,"#ffffff","#d6e0e5"),
+        t(64,463,"SIGNAL DEBOUNCER / VALID QUOTES ONLY",15,"#5f4a9c",700),
+        t(64,494,f"{valid:,} valid quotes",19,"#1b2d33",700),
+        rect(64,512,1070,30,"#ebe8f8","#ebe8f8",6),
+        rect(64,512,accepted_w,30,"#4aa889","#4aa889",6),
+        t(64,568,f"Accepted: {accepted:,} ({100*accepted/valid:.2f}%)",16,"#17685c",700),
+        t(590,568,f"Held back: {held:,} ({100*held/valid:.2f}%)",16,"#5f4a9c",700),
+        t(40,624,"The risk check still runs on every quote that passes quote-quality validation.",15,"#52656d")]
+    save("data-quality.svg",1200,640,parts)
+
+def performance_comparison(d):
+    rows=d["policies"]
+    colors=["#3988a8","#8c79c8","#399b7d"]
+    max_rate=max(float(row["events_per_second"]) for row in rows) or 1
+    parts=['<rect width="1200" height="560" fill="#101827"/>',
+        t(40,48,"PERFORMANCE / POLICY COMPARISON",16,"#72d9be",700),
+        t(40,89,"Throughput and sampled processing latency",28,"#f3f6fb",700),
+        t(40,121,"Throughput includes synthetic input generation; latency is sampled around engine.process().",15,"#aab8ce")]
+    for row,y,color in zip(rows,[177,292,407],colors):
+        rate=float(row["events_per_second"])
+        p95=float(row["sampled_latency_p95_us"])
+        p99=float(row["sampled_latency_p99_us"])
+        parts += [rect(40,y-32,1120,94,"#1a2638"),
+            t(62,y-3,row["policy"].upper(),16,color,700),
+            rect(285,y-19,450,22,"#2b384d","#2b384d",5),
+            rect(285,y-19,450*rate/max_rate,22,color,color,5),
+            t(285,y+29,f"{rate:,.0f} events/s",16,"#f3f6fb",700),
+            t(790,y-2,f"P95 {p95:.3f} us",16,"#f3f6fb",700),
+            t(985,y-2,f"P99 {p99:.3f} us",16,"#c8d2e1",700),
+            t(790,y+29,f"{int(row['accepted_signals']):,} accepted · {int(row['debounced_signals']):,} held",13,"#aab8ce")]
+    parts += [t(40,526,"Machine-specific synthetic test; use the same machine and settings for comparisons.",15,"#aab8ce")]
+    save("performance-comparison.svg",1200,560,parts)
+
+def experiment_pipeline():
+    parts=['<rect width="1200" height="520" fill="#f2f5f7"/>',
+        t(40,48,"EXPERIMENT PIPELINE / REPEATABLE STEPS",16,"#17685c",700),
+        t(40,88,"From synthetic quotes to checked reports",28,"#1b2d33",700)]
+    cards=[
+        (40,"1 · GENERATE",["Seeded quote stream","Known 180 bps gap"]),
+        (270,"2 · INJECT",["Repeat sequences","Old / stale quotes"]),
+        (500,"3 · COMPARE",["No / fixed / dynamic","debounce policies"]),
+        (730,"4 · MEASURE",["Warm-up excluded","Timed repeats"]),
+        (960,"5 · CHECK",["Counts + price rules","CSV / JSON / SVG"]),
+    ]
+    for x,title,lines in cards:
+        parts += [rect(x,150,200,150,"#ffffff","#8ba7b2"),
+            t(x+14,184,title,14,"#17685c",700),
+            t(x+14,225,lines[0],14,"#23323a"),
+            t(x+14,252,lines[1],14,"#23323a")]
+    for x in [240,470,700,930]:
+        parts.append(f'<path d="M{x} 225 h24 l-7 -6 m7 6 l-7 6" fill="none" stroke="#506a73" stroke-width="2.5"/>')
+    parts += [rect(40,354,1120,93,"#e3eee9","#b5d1c6"),
+        t(64,391,"REPEATABLE INPUTS",15,"#17685c",700),
+        t(64,422,"Same seed and count; measured runs follow one warm-up run per policy.",17,"#23323a"),
+        t(40,489,"All outputs are simulations. They do not place live orders or guarantee fills.",15,"#52656d")]
+    save("experiment-pipeline.svg",1200,520,parts)
+
+def storage_chart(report):
+    data=json.loads(report.read_text())
+    rows=int(data["rows_read_back"])
+    throughput=float(data["rows_per_second"])
+    parts=['<rect width="1100" height="420" fill="#101827"/>',
+        t(40,48,"DUCKDB / VERIFIED BATCH WRITE",16,"#72d9be",700),
+        t(40,90,f"{rows:,} rows read back",28,"#f3f6fb",700),
+        t(40,124,f"Separate warm-up: {int(data['warmup_row_count']):,} rows · batch size {int(data['batch_size']):,}",16,"#aab8ce"),
+        rect(40,160,1020,100,"#1a2638"),
+        t(65,197,f"Measured throughput: {throughput:,.0f} rows/s",22,"#f3f6fb",700),
+        t(65,231,f"Read-back sequences: {int(data['first_sequence']):,} to {int(data['last_sequence']):,}",16,"#c8d2e1"),
+        rect(40,292,1020,77,"#1a2638"),
+        t(65,325,f"Elapsed: {float(data['elapsed_ms']):,.1f} ms  ·  Database: {int(data['database_bytes']):,} bytes",16,"#c8d2e1"),
+        t(40,402,"This chart is generated only when a verified storage_benchmark.json report exists.",13,"#aab8ce")]
+    save("storage-benchmark.svg",1100,420,parts)
+
 def main():
     d=json.loads((R/"artifacts"/"experiment_summary.json").read_text())
     architecture();flow();dashboard(d);charts(d)
-    if (R/"artifacts"/"zmq_ipc_benchmark.json").exists():latency("zmq-ipc-latency.svg",R/"artifacts"/"zmq_ipc_benchmark.json","zmq")
-    if (R/"artifacts"/"cpp_benchmark_10m.json").exists():latency("cpp-benchmark.svg",R/"artifacts"/"cpp_benchmark_10m.json","cpp")
+    data_quality(d);performance_comparison(d);experiment_pipeline()
+    zmq_report=R/"artifacts"/"zmq_ipc_benchmark.json"
+    if zmq_report.exists():latency("zmq-ipc-latency.svg",zmq_report,"zmq")
+    cpp_report=R/"artifacts"/"cpp_benchmark.json"
+    if not cpp_report.exists():cpp_report=R/"artifacts"/"cpp_benchmark_10m.json"
+    if cpp_report.exists():latency("cpp-benchmark.svg",cpp_report,"cpp")
+    storage_report=R/"artifacts"/"storage_benchmark.json"
+    if storage_report.exists():storage_chart(storage_report)
     print(f"Generated SVG reports in {A}")
 if __name__=="__main__":main()

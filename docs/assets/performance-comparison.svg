@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560">
+<rect width="1200" height="560" fill="#101827"/>
+<text x="40" y="48" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#72d9be">PERFORMANCE / POLICY COMPARISON</text>
+<text x="40" y="89" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="#f3f6fb">Throughput and sampled processing latency</text>
+<text x="40" y="121" font-family="Arial,sans-serif" font-size="15" font-weight="400" fill="#aab8ce">Previously saved run · 100K ticks · three measured repeats after warm-up</text>
+<rect x="40" y="145" width="1120" height="94" rx="12" fill="#1a2638" stroke="#44546a" stroke-width="2"/>
+<text x="62" y="174" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#3988a8">NO DEBOUNCE</text>
+<rect x="285" y="158" width="450" height="22" rx="5" fill="#2b384d" stroke="#2b384d" stroke-width="2"/>
+<rect x="285" y="158" width="450" height="22" rx="5" fill="#3988a8" stroke="#3988a8" stroke-width="2"/>
+<text x="285" y="206" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#f3f6fb">334,637 events/s</text>
+<text x="790" y="175" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#f3f6fb">P95 1.421 μs</text>
+<text x="985" y="175" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#c8d2e1">P99 1.946 μs</text>
+<text x="790" y="206" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#aab8ce">99,427 accepted · 0 held</text>
+<rect x="40" y="260" width="1120" height="94" rx="12" fill="#1a2638" stroke="#44546a" stroke-width="2"/>
+<text x="62" y="289" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#8c79c8">FIXED DEBOUNCE</text>
+<rect x="285" y="273" width="450" height="22" rx="5" fill="#2b384d" stroke="#2b384d" stroke-width="2"/>
+<rect x="285" y="273" width="376.2813137817994" height="22" rx="5" fill="#8c79c8" stroke="#8c79c8" stroke-width="2"/>
+<text x="285" y="321" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#f3f6fb">279,817 events/s</text>
+<text x="790" y="290" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#f3f6fb">P95 1.828 μs</text>
+<text x="985" y="290" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#c8d2e1">P99 3.069 μs</text>
+<text x="790" y="321" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#aab8ce">9,953 accepted · 89,474 held</text>
+<rect x="40" y="375" width="1120" height="94" rx="12" fill="#1a2638" stroke="#44546a" stroke-width="2"/>
+<text x="62" y="404" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#399b7d">DYNAMIC DEBOUNCE</text>
+<rect x="285" y="388" width="450" height="22" rx="5" fill="#2b384d" stroke="#2b384d" stroke-width="2"/>
+<rect x="285" y="388" width="394.1529179379447" height="22" rx="5" fill="#399b7d" stroke="#399b7d" stroke-width="2"/>
+<text x="285" y="436" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#f3f6fb">293,107 events/s</text>
+<text x="790" y="405" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#f3f6fb">P95 1.820 μs</text>
+<text x="985" y="405" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#c8d2e1">P99 2.756 μs</text>
+<text x="790" y="436" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#aab8ce">9,934 accepted · 89,493 held</text>
+<text x="40" y="526" font-family="Arial,sans-serif" font-size="15" font-weight="400" fill="#aab8ce">Synthetic test only; rates depend on hardware, compiler, and system load.</text>
+</svg>

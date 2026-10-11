@@ -23,10 +23,16 @@ async def write_run(path,count,batch_size):
     con=duckdb.connect(str(path),read_only=True)
     try:
         rows=int(con.execute("SELECT COUNT(*) FROM ticks").fetchone()[0])
+        distinct_sequences=int(con.execute("SELECT COUNT(DISTINCT sequence) FROM ticks").fetchone()[0])
         first,last=con.execute("SELECT MIN(sequence),MAX(sequence) FROM ticks").fetchone()
     finally:con.close()
-    if rows!=count or first!=0 or last!=count-1:raise RuntimeError(f"storage check failed: wanted {count} rows 0..{count-1}, got {rows} rows {first}..{last}")
-    return {"rows_requested":count,"rows_written_by_logger":logger.rows_written,"rows_read_back":rows,"first_sequence":first,"last_sequence":last,
+    if rows!=count or logger.rows_written!=count or distinct_sequences!=count or first!=0 or last!=count-1:
+        raise RuntimeError(
+            f"storage check failed: wanted {count} unique rows 0..{count-1}; "
+            f"logger={logger.rows_written}, read_back={rows}, unique={distinct_sequences}, range={first}..{last}"
+        )
+    return {"rows_requested":count,"rows_written_by_logger":logger.rows_written,"rows_read_back":rows,
+        "distinct_sequences":distinct_sequences,"first_sequence":first,"last_sequence":last,
         "elapsed_ms":elapsed/1e6,"rows_per_second":count/(elapsed/1e9),"batch_size":batch_size,"database_bytes":path.stat().st_size}
 async def run(count,batch_size,output):
     output.parent.mkdir(parents=True,exist_ok=True);warm=output.with_name(output.stem+".warmup.duckdb")

@@ -90,6 +90,19 @@ class AsyncDuckDBTickLogger:
                 try: connection.close()
                 except Exception: pass
     def _flush(self, connection: object, batch: list[Row]) -> None:
-        connection.executemany("INSERT INTO ticks VALUES (?, ?, ?, ?, ?)", batch)  # type: ignore[attr-defined]
+        """Insert one batch with a vectorized query instead of per-row inserts."""
+        if not batch:
+            return
+        symbols = [row[0] for row in batch]
+        sequences = [row[1] for row in batch]
+        timestamps = [row[2] for row in batch]
+        bids = [row[3] for row in batch]
+        asks = [row[4] for row in batch]
+        connection.execute(  # type: ignore[attr-defined]
+            "INSERT INTO ticks "
+            "SELECT UNNEST(?::VARCHAR[]), UNNEST(?::BIGINT[]), "
+            "UNNEST(?::BIGINT[]), UNNEST(?::DOUBLE[]), UNNEST(?::DOUBLE[])",
+            [symbols, sequences, timestamps, bids, asks],
+        )
         self.rows_written += len(batch)
         batch.clear()

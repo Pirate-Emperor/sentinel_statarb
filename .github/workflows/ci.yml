@@ -22,22 +22,26 @@ jobs:
           python-version: "3.12"
       - name: Install project and optional test dependencies
         run: python -m pip install --upgrade pip && python -m pip install -e ".[ipc,storage,dev]"
-      - name: Run Python unit tests
+      - name: Check Python syntax
+        run: python -m compileall -q sentinel_runtime scripts tests
+      - name: Run Python unit and integration tests
         run: python -m unittest discover -s tests -v
       - name: Build native C++ targets
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build --parallel
       - name: Run native C++ tests
         run: ctest --test-dir build --output-on-failure
       - name: Run repeatable 100K quote experiments
-        run: python scripts/run_experiments.py --ticks 100000 --repeats 3 --out artifacts && python scripts/make_artifacts.py
-      - name: Run C++ 1M queue benchmark after warm-up
-        run: bash scripts/run_cpp_benchmark.sh 1000000 artifacts/cpp_benchmark.json
+        run: python scripts/run_experiments.py --ticks 100000 --repeats 3 --out artifacts
+      - name: Benchmark native C++ at 1M and 10M ticks after warm-up
+        run: |
+          bash scripts/run_cpp_benchmark.sh 1000000 artifacts/cpp_benchmark.json
+          bash scripts/run_cpp_benchmark.sh 10000000 artifacts/cpp_benchmark_10m.json
       - name: Measure process-to-process ZeroMQ IPC after warm-up
         run: python scripts/benchmark_zmq_ipc.py --ticks 20000 --warmup 2000 --out artifacts/zmq_ipc_benchmark.json
-      - name: Refresh the IPC latency chart
-        run: python scripts/make_artifacts.py
       - name: Verify 10M rows through DuckDB warm-up and measured runs
         run: python scripts/benchmark_storage.py --ticks 10000000 --batch-size 10000 --out artifacts/stress_ticks.duckdb
+      - name: Generate diagrams and validate all reports
+        run: python scripts/make_artifacts.py && python scripts/validate_reports.py
       - name: Publish test reports and charts
         if: always()
         uses: actions/upload-artifact@v4

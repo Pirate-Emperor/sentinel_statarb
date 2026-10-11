@@ -1,122 +1,131 @@
 # Sentinel StatArb
 
-**C++17 execution simulation · Python risk checks · ZeroMQ adapter · DuckDB batch logging**
+**A small market-event test system using C++17, Python, ZeroMQ, and DuckDB.**
 
-Sentinel StatArb is a testable market-event pipeline for studying fast quote handling, repeated-signal control, and stop-limit behavior during sharp price moves. It includes a native C++ queue benchmark and a Python simulation with repeatable data checks. The examples use synthetic data; they do not place live orders.
+Sentinel StatArb tests how fast quote streams behave when they contain repeated messages, old timestamps, stale quotes, and a sudden price gap. It combines a native C++ queue simulation with Python checks for signal control, protective stop-limit orders, message transport, and batch storage.
 
-## What is included
+All examples use synthetic data. The project does not connect to a broker or place live orders.
 
-- **Native C++ engine simulation.** A single-producer/single-consumer (SPSC) ring uses atomics to move tick records between threads. The benchmark warms up before collecting throughput and sampled processing latency.
-- **Quote checks and signal control.** Repeated sequence numbers, old timestamps, stale quotes, and future timestamps are rejected. A dynamic debouncer lengthens its quiet period after a sharp move. Protective orders are checked on every valid quote, even when strategy signals are held back.
-- **OCO stop-limit model.** A stop and take-profit share one order state; after one fires, the other is cancelled. The default stop-limit price is offset by 5 basis points (bps) from the stop trigger.
-- **ZeroMQ message adapter.** Validated JSON tick messages can be sent using a pyzmq async socket. The adapter can use IPC or TCP endpoints supplied by the caller.
-- **DuckDB batch writer.** A bounded queue feeds one database-writing thread. Batches reduce per-tick overhead; a full queue applies back-pressure instead of silently dropping ticks.
-- **Repeatable experiments.** Test streams include duplicate quotes, out-of-order timestamps, stale messages, and a controlled 180 bps price gap. Results are saved as CSV/JSON and SVG diagrams.
+## At a glance
 
-> **Important limits:** the SPSC ring is an in-process lock-free queue; ZeroMQ is a separate IPC/network transport and is not described as lock-free. A 5 bps stop-limit offset is a price bound, not a fill guarantee. When a crash gaps farther than the offset, the order can trigger but remain unfilled. Benchmark rates depend on the machine and are not live-market claims.
+- **Native C++ engine:** SPSC ring buffer and an event-processing benchmark. The benchmark reports whether its atomics are lock-free on the current machine.
+- **Quote checks:** Reject repeated sequence numbers, out-of-order timestamps, stale quotes, and timestamps too far in the future.
+- **Dynamic debouncer:** Holds back repeated strategy signals for longer after a sharp price move. Protective order checks still run for every quote that passes the quality checks.
+- **OCO stop-limit model:** Tests stop/target behavior and a 5 bps stop-limit offset. A triggered stop-limit order can remain unfilled after a large gap.
+- **ZeroMQ bridge:** Sends validated tick messages over an IPC or TCP socket. The benchmark is a process-to-process round trip, not a one-way measurement.
+- **DuckDB writer:** Uses a bounded queue and a separate writer thread. Vectorized batch inserts reduce per-row database overhead; read-back checks verify every sequence.
+- **Repeatable experiments:** Save CSV/JSON measurements and SVG diagrams for the quote policies, crash scenario, and timing results.
+
+## System view
+
+![Sentinel StatArb architecture](docs/assets/architecture.svg)
+
+![Quote validation and risk flow](docs/assets/execution-flow.svg)
 
 ## Quick start
 
-Use Python 3.10 or newer, a C++17 compiler, and CMake 3.16 or newer.
+Requirements: Python 3.10+, a C++17 compiler, and CMake 3.16+.
 
-    python -m venv .venv
-    # Linux / macOS:
-    source .venv/bin/activate
-    # Windows PowerShell:
-    # .venv\Scripts\Activate.ps1
-    python -m pip install --upgrade pip
-    python -m pip install -e ".[ipc,storage,dev]"
+```bash
+python -m venv .venv
+# Linux / macOS
+source .venv/bin/activate
+# Windows PowerShell: .venv\Scripts\Activate.ps1
 
-Build and test the C++ engine:
+python -m pip install --upgrade pip
+python -m pip install -e ".[ipc,storage,dev]"
+```
 
-    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-    cmake --build build --parallel
-    ctest --test-dir build --output-on-failure
+Build and test the C++ code:
 
-Run Python tests and repeatable experiments:
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+ctest --test-dir build --output-on-failure
+```
 
-    python -m unittest discover -s tests -v
-    python scripts/run_experiments.py --ticks 100000 --repeats 3
-    python scripts/make_artifacts.py
+Run Python tests and validate the saved reports:
 
-The scripts run one unmeasured warm-up for each policy, then take the median of timed runs. Increase the data size for a heavier experiment:
+```bash
+python -m unittest discover -s tests -v
+python scripts/validate_reports.py
+```
 
-    python scripts/run_experiments.py --ticks 1000000 --repeats 3
-    python scripts/run_experiments.py --ticks 10000000 --repeats 3
+Run the combined local checks:
 
-Run the C++ benchmark twice at the selected size; only the second run is saved as the measurement:
+```bash
+bash scripts/run_checks.sh
+```
 
-    bash scripts/run_cpp_benchmark.sh 10000000 artifacts/cpp_benchmark_10m.json
+The combined script runs smaller storage checks by default. Set `SENTINEL_STORAGE_TICKS=10000000` to run the full storage size locally.
 
-Measure ZeroMQ IPC round trips (not one-way latency):
+## Repeatable experiments
 
-    python scripts/benchmark_zmq_ipc.py --ticks 20000 --warmup 2000 --out artifacts/zmq_ipc_benchmark.json
+The experiment script runs one warm-up for each policy, then measures repeated runs and reports the median timing. The timing excludes that policy's warm-up run.
 
-Run the DuckDB persistence stress test. The script does one full warm-up run, then writes a separate measured database and checks the row count and sequence range:
+```bash
+# Python quote and risk experiment
+python scripts/run_experiments.py --ticks 100000 --repeats 3
+python scripts/run_experiments.py --ticks 1000000 --repeats 3
 
-    python scripts/benchmark_storage.py --ticks 10000000 --batch-size 10000 --out artifacts/stress_ticks.duckdb
+# Native C++ benchmark: warm-up run, then measured run
+bash scripts/run_cpp_benchmark.sh 1000000 artifacts/cpp_benchmark.json
+bash scripts/run_cpp_benchmark.sh 10000000 artifacts/cpp_benchmark_10m.json
 
-The storage test needs the storage extra. It creates a local database file; do not commit that file. Smaller counts are useful for quick checks.
+# ZeroMQ IPC round-trip benchmark
+python scripts/benchmark_zmq_ipc.py --ticks 20000 --warmup 2000 --out artifacts/zmq_ipc_benchmark.json
 
-## Diagrams and results
+# Separate warm-up and measured DuckDB writes, then verify every row and sequence
+python scripts/benchmark_storage.py --ticks 10000000 --batch-size 10000 --out artifacts/stress_ticks.duckdb
 
-### System map
+# Refresh the diagrams from the saved JSON reports
+python scripts/make_artifacts.py
+python scripts/validate_reports.py
+```
 
-![Sentinel StatArb system map](docs/assets/architecture.svg)
+The DuckDB command writes a separate warm-up database and measured database. It reads the measured database back and checks the row count, distinct sequence count, and sequence range. Database files are local test outputs and are not meant to be committed.
 
-### Quote validation and risk checks
+GitHub Actions runs Python tests, C++ tests, the 100K quote experiment, 1M and 10M C++ benchmarks, ZeroMQ IPC tests, and the 10M-row DuckDB check. A run is successful only when the steps complete and their checks pass. See [the workflow](.github/workflows/ci.yml).
 
-![Execution and risk flow](docs/assets/execution-flow.svg)
+## Analysis and experiment images
 
-### Policy comparison
+![Experiment pipeline](docs/assets/experiment-pipeline.svg)
 
-![Experiment dashboard](docs/assets/experiment-dashboard.svg)
+![Quote data-quality counts](docs/assets/data-quality.svg)
 
-### Native C++ benchmark
+![Signal policy performance comparison](docs/assets/performance-comparison.svg)
 
-![C++ measured processing latency](docs/assets/cpp-benchmark.svg)
-
-### Flash-crash example
-
-![Flash-crash analysis](docs/assets/flash-crash-analysis.svg)
-
-### Stop-limit gap sweep
+![Synthetic flash-crash scenario](docs/assets/flash-crash-analysis.svg)
 
 ![Stop-limit gap sweep](docs/assets/oco-gap-sweep.svg)
 
-### ZeroMQ IPC test
+![Native C++ benchmark](docs/assets/cpp-benchmark.svg)
 
-![Measured ZeroMQ IPC latency](docs/assets/zmq-ipc-latency.svg)
+![ZeroMQ IPC round-trip benchmark](docs/assets/zmq-ipc-latency.svg)
 
-The checked-in reports include experiment_summary.json, experiment_metrics.csv, oco_gap_sweep.csv, cpp_benchmark_10m.json, and zmq_ipc_benchmark.json. The image script refreshes the SVGs from the experiment report. There is no main.png; the project uses the smaller SVG reports above.
+More detail is in [the reports and diagrams index](docs/README.md).
 
-## Configuration notes
+## Reading the numbers correctly
 
-DynamicDebouncer takes a base quiet period, a maximum quiet period, and a move size (in bps) that starts extending the wait. OCOStopLimit accepts entry price, side, stop distance, take-profit distance, and limit offset. Quote-age limits are set on ExecutionEngine. The ZeroMQ adapter accepts an existing async socket, so endpoint and bind/connect choices remain with the caller.
+The checked-in JSON/CSV files and diagrams are reference runs from synthetic data. Throughput and latency change with the CPU, operating system, compiler, process scheduling, and test settings. Re-run the commands above to produce results for your machine.
 
-The IPC result is a process-to-process round trip and includes Python and operating-system scheduling. It does not measure one-way latency. AsyncDuckDBTickLogger has start, log, log_many, and close methods. Call close to flush the final partial batch. If DuckDB is missing or the writer fails, the logger raises an error instead of claiming records were stored.
+The saved 10M C++ report records about **34.55 million events/second** and **0.043 μs sampled p99 processing latency** for that run. That is sampled native event-processing time, not end-to-end market latency.
 
-## Tests
+The saved ZeroMQ report records about **96.9 μs p50** and **700.4 μs p99** round-trip latency. This does **not** show sub-10 μs IPC, and ZeroMQ is not claimed to be lock-free. The in-process C++ SPSC ring and the ZeroMQ process-to-process path are separate measurements.
 
-The suite covers quote validation, sequence/timestamp ordering, stale/future quote rejection, adaptive debounce behavior, the 5 bps offset, one-shot OCO behavior, large-gap non-fill behavior, deterministic experiment output, ZeroMQ message round-trip, and bounded async batching. A separate DuckDB test runs when the optional dependency is installed. The C++ test checks ring capacity and ordering across 500,000 values, debounce rules, and OCO stop-limit math.
+A 5 bps stop-limit offset sets a price boundary; it does not promise a fill. The gap sweep deliberately includes price moves larger than the offset so this limitation is visible in the tests.
 
-Run the main checks:
+## Main files
 
-    bash scripts/run_checks.sh
+- `sentinel_runtime/`: Python quote validation, debouncing, risk rules, ZeroMQ bridge, and DuckDB writer
+- `cpp/`: C++17 event simulation, SPSC ring, and native tests
+- `tests/`: Python unit and integration tests
+- `scripts/`: benchmarks, report generation, and report validation
+- `artifacts/`: synthetic experiment results in CSV/JSON format
+- `docs/assets/`: system, execution, data-quality, and benchmark SVGs
 
-The GitHub Actions workflow installs the optional dependencies, runs the core tests and benchmarks, performs a 10-million-row DuckDB persistence test, and saves the reports as build artifacts.
+## Author and license
 
-## Files
+Author: **Pirate-Emperor**.
 
-- sentinel_runtime/ — Python quote checks, debouncing, risk, ZeroMQ, and DuckDB modules
-- cpp/ — C++17 simulation, SPSC ring, and native tests
-- scripts/ — experiments, asset generation, and benchmarks
-- tests/ — Python unit and optional storage tests
-- artifacts/ — experiment CSV/JSON reports (no database file)
-- docs/assets/ — SVG architecture and analysis images
-
-## License and author
-
-Project author: **Pirate-Emperor**.
-
-The license files are kept separate because they contain different license terms. Required copyright and license notices remain in those files and in the relevant source files.
+The project uses the MIT License. See [LICENSE](LICENSE).

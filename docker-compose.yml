@@ -1,7 +1,0 @@
-services:
-  sentinel-checks:
-    build: .
-    image: sentinel-statarb:local
-    command: ["bash", "scripts/run_checks.sh"]
-    volumes:
-      - ./artifacts:/workspace/artifacts

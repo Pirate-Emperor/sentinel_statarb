@@ -1,6 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520">
-<rect width="1200" height="520" fill="#111827"/><g font-family="Arial,sans-serif"><text x="40" y="50" fill="#71d8bf" font-size="16" font-weight="700">FLASH-CRASH REPLAY / SYNTHETIC PRICES</text><text x="40" y="91" fill="#f4f7fb" font-size="27" font-weight="700">A wide gap can trigger a stop and block its limit fill</text><text x="40" y="122" fill="#aab8ce" font-size="16">100,000 ticks · controlled 180 bps price gap near 55% of the run</text>
-<g stroke="#263348"><path d="M82 168 H1145"/><path d="M82 223 H1145"/><path d="M82 278 H1145"/><path d="M82 333 H1145"/><path d="M82 388 H1145"/></g>
-<path d="M82 185 L200 180 L350 187 L490 181 L650 183 L652 368 L820 372 L980 369 L1145 373" stroke="#64c8e6" stroke-width="4" fill="none"/>
-<path d="M82 240 H1145" stroke="#ffbd78" stroke-width="3" stroke-dasharray="10 7"/><path d="M82 258 H1145" stroke="#f28f7d" stroke-width="3" stroke-dasharray="5 5"/><path d="M652 153 V398" stroke="#f3f6fb" stroke-width="2" stroke-dasharray="4 8"/>
-<text x="90" y="420" fill="#64c8e6" font-size="15" font-weight="700">PRICE</text><text x="205" y="420" fill="#ffbd78" font-size="15" font-weight="700">STOP 99.75</text><text x="390" y="420" fill="#f28f7d" font-size="15" font-weight="700">SELL LIMIT 99.7001 (5 bps below stop)</text><text x="40" y="478" fill="#c8d2e1" font-size="16">Crash price is below the sell limit: stop triggers, but the price check says the limit is not marketable.</text></g></svg>
+<rect width="1200" height="520" fill="#101827"/>
+<text x="40" y="45" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#72d9be">FLASH-CRASH REPLAY / SYNTHETIC PRICES</text>
+<text x="40" y="84" font-family="Arial,sans-serif" font-size="27" font-weight="700" fill="#f4f7fb">A 180 bps gap moves below the stop-limit price</text>
+<text x="40" y="116" font-family="Arial,sans-serif" font-size="15" font-weight="400" fill="#aab8ce">100,000 base ticks · deliberate price step at 55% of the stream</text>
+<path d="M82 203.08 H1110" stroke="#263348" stroke-width="1"/>
+<text x="24" y="208.07692307692344" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#aab8ce">100</text>
+<path d="M82 285.77 H1110" stroke="#263348" stroke-width="1"/>
+<text x="24" y="290.76923076923083" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#aab8ce">99</text>
+<path d="M82 368.46 H1110" stroke="#263348" stroke-width="1"/>
+<text x="24" y="373.4615384615383" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#aab8ce">98</text>
+<path d="M82 223.75 H1110" stroke="#ffbd78" stroke-width="2" stroke-dasharray="10 7"/>
+<path d="M82 227.87 H1110" stroke="#f28f7d" stroke-width="2" stroke-dasharray="4 5"/>
+<path d="M82 203.08 L645 203.08 L646 351.92 L1110 351.92" fill="none" stroke="#64c8e6" stroke-width="3" stroke-linejoin="round"/>
+<text x="82" y="415" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#aab8ce">START</text>
+<text x="647.4000000000001" y="415" font-family="Arial,sans-serif" font-size="13" font-weight="700" fill="#f28f7d">GAP</text>
+<text x="1075" y="415" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#aab8ce">END</text>
+<rect x="80" y="440" width="235" height="42" rx="7" fill="#222f40" stroke="#40536c" stroke-width="2"/>
+<text x="96" y="467" font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="#ffbd78">STOP  99.75</text>
+<rect x="332" y="440" width="285" height="42" rx="7" fill="#222f40" stroke="#40536c" stroke-width="2"/>
+<text x="348" y="467" font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="#f28f7d">SELL LIMIT  99.7001</text>
+<rect x="634" y="440" width="500" height="42" rx="7" fill="#222f40" stroke="#40536c" stroke-width="2"/>
+<text x="650" y="467" font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="#f3f6fb">After-gap price: 98.20 · not marketable</text>
+<text x="40" y="505" font-family="Arial,sans-serif" font-size="14" font-weight="400" fill="#c8d2e1">The stop is triggered, but this price cannot satisfy the sell limit. No fill is promised.</text>
+</svg>

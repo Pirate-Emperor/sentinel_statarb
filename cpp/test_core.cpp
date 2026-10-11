@@ -5,6 +5,8 @@
 #include <cmath>
 #include <cstdint>
 #include <iostream>
+#include <limits>
+#include <stdexcept>
 #include <thread>
 namespace {
 void ring_basic(){
@@ -25,6 +27,22 @@ void debouncer(){
   assert(d.accept(1200000,100.0)); assert(!d.accept(1300000,98.0));
   assert(d.blocked_until_ns()==3300000); assert(!d.accept(2000000,98.0)); assert(d.accept(3300000,98.0));
 }
+void input_guards(){
+  bool threw=false;
+  try { sentinel::DynamicDebouncer bad(100,200,std::numeric_limits<double>::quiet_NaN()); }
+  catch(const std::invalid_argument&) { threw=true; }
+  assert(threw);
+  sentinel::DynamicDebouncer d(100,200,5.0);
+  assert(d.accept(1000,100.0));
+  threw=false;
+  try { (void)d.accept(999,100.0); }
+  catch(const std::invalid_argument&) { threw=true; }
+  assert(threw);
+  threw=false;
+  try { sentinel::OcoStopLimit bad(100.0,25.0,10000.0); }
+  catch(const std::invalid_argument&) { threw=true; }
+  assert(threw);
+}
 void oco(){
   sentinel::OcoStopLimit q(100,25,5);
   assert(std::abs(q.stop_price()-99.75)<1e-10);
@@ -33,4 +51,4 @@ void oco(){
   sentinel::OcoStopLimit gap(100,25,5); assert(gap.observe(98.2)); assert(gap.triggered()); assert(!gap.marketable());
 }
 }
-int main(){ring_basic();ring_threaded();debouncer();oco();std::cout<<"All C++ core tests passed.\n";}
+int main(){ring_basic();ring_threaded();debouncer();input_guards();oco();std::cout<<"All C++ core tests passed.\n";}
