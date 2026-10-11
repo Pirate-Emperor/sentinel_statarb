@@ -103,7 +103,7 @@ GitHub Actions runs Python tests, C++ tests, the 100K quote experiment, 1M and 1
 
 ![ZeroMQ IPC round-trip benchmark](docs/assets/zmq-ipc-latency.svg)
 
-More detail is in [the reports and diagrams index](docs/README.md).
+See the [experiment notes](docs/EXPERIMENTS.md) and [reports and diagrams index](docs/README.md) for the saved results and how to reproduce them.
 
 ## Reading the numbers correctly
 
