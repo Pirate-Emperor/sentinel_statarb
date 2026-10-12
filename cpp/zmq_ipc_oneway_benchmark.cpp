@@ -114,7 +114,14 @@ int receiver(const std::string& endpoint,std::uint64_t total,std::uint64_t warmu
   zmq_close(socket);zmq_ctx_term(context);
   const bool sent=write_all(result_fd,&out,sizeof(out));
   close(result_fd);
-  return sent&&out.ok?0:5;
+  if (!sent) return 7;
+  if (!out.ok) {
+    std::cerr << "receiver validation failed: samples=" << out.sample_count
+              << ", expected=" << (total-warmup)
+              << ", bad_payloads=" << out.bad_payloads << '\\n';
+    return 5;
+  }
+  return 0;
 }
 std::string make_report(std::uint64_t messages,std::uint64_t warmup,const Summary& s,double sender_rate,double sender_duration_ms) {
   std::ostringstream out;
@@ -208,10 +215,13 @@ int main(int argc,char** argv) {
       const double send_duration=std::chrono::duration<double>(last_send-first_send).count();
       const double sender_rate=send_duration>0?static_cast<double>(messages)/send_duration:0.0;
       const double sender_ms=send_duration*1000.0;
-      zmq_close(socket);socket=nullptr;zmq_ctx_term(context);context=nullptr;
+      // Keep the PUSH socket open until the receiver confirms that every queued
+      // message was consumed. LINGER=0 would otherwise drop buffered messages.
       Summary summary{};
       require(read_all(result_read,&summary,sizeof(summary)),"could not read ZeroMQ receiver report");
       close(result_read);result_read=-1;
+      zmq_close(socket);socket=nullptr;
+      zmq_ctx_term(context);context=nullptr;
       int status=0;const auto waited=waitpid(child,&status,0);child_waited=true;
       require(waited==child&&WIFEXITED(status)&&WEXITSTATUS(status)==0,"ZeroMQ receiver exited with an error");
       require(summary.ok==1&&summary.sample_count==messages&&summary.bad_payloads==0,"ZeroMQ payload or sample count check failed");
