@@ -23,7 +23,7 @@
 
 namespace {
 using Clock = std::chrono::steady_clock;
-constexpr std::size_t kCapacity = 4096;
+constexpr std::size_t kMaxCapacity = 4096;
 static_assert(sizeof(std::atomic<std::uint64_t>) <= 64, "atomic must fit in one cache line");
 struct Tick {
   std::uint64_t sequence=0;
@@ -34,16 +34,18 @@ struct alignas(64) SharedSpscQueue {
   char head_padding[64 - sizeof(std::atomic<std::uint64_t>)];
   alignas(64) std::atomic<std::uint64_t> tail;
   char tail_padding[64 - sizeof(std::atomic<std::uint64_t>)];
-  alignas(64) Tick slots[kCapacity];
-  SharedSpscQueue() : head(0), head_padding{}, tail(0), tail_padding{}, slots{} {}
+  std::size_t capacity;
+  alignas(64) Tick slots[kMaxCapacity];
+  explicit SharedSpscQueue(std::size_t queue_capacity)
+      : head(0), head_padding{}, tail(0), tail_padding{}, capacity(queue_capacity), slots{} {}
   bool lock_free() const {
     return head.is_lock_free() && tail.is_lock_free();
   }
   bool try_push(const Tick& tick) {
     const auto h=head.load(std::memory_order_relaxed);
     const auto t=tail.load(std::memory_order_acquire);
-    if(h-t>=kCapacity) return false;
-    slots[h%kCapacity]=tick;
+    if(h-t>=capacity) return false;
+    slots[h & (capacity-1)]=tick;
     head.store(h+1,std::memory_order_release);
     return true;
   }
@@ -51,7 +53,7 @@ struct alignas(64) SharedSpscQueue {
     const auto t=tail.load(std::memory_order_relaxed);
     const auto h=head.load(std::memory_order_acquire);
     if(t==h) return false;
-    tick=slots[t%kCapacity];
+    tick=slots[t & (capacity-1)];
     tail.store(t+1,std::memory_order_release);
     return true;
   }
@@ -62,6 +64,7 @@ struct Summary {
   std::uint64_t sample_count=0;
   std::uint64_t bad_sequences=0;
   std::uint64_t invalid_timestamps=0;
+  std::uint64_t queue_capacity=0;
   double p50_us=0,p95_us=0,p99_us=0,max_us=0,mean_us=0;
   double throughput_messages_per_second=0,duration_ms=0;
 };
@@ -112,6 +115,7 @@ int consume(SharedSpscQueue* queue,std::uint64_t count,std::uint64_t warmup,
   samples.reserve(static_cast<std::size_t>(count-warmup));
   Summary out;
   out.atomics_lock_free=1;
+  out.queue_capacity=queue->capacity;
   Clock::time_point start{},finish{};
   Tick tick{};
   for(std::uint64_t expected=0;expected<count;++expected) {
@@ -154,6 +158,7 @@ std::string make_report(std::uint64_t messages,std::uint64_t warmup,const Summar
      <<"  \"measurement\": \"Producer monotonic timestamp to consumer pop; same host clock; no sockets\",\n"
      <<"  \"warmup_messages\": "<<warmup<<",\n"
      <<"  \"measured_messages\": "<<messages<<",\n"
+     <<"  \"queue_capacity\": "<<s.queue_capacity<<",\n"
      <<"  \"payload_check\": \""<<(s.ok?"passed":"failed")<<"\",\n"
      <<"  \"shared_memory_is_lock_free\": "<<(s.atomics_lock_free?"true":"false")<<",\n"
      <<"  \"sub_10_us_p50\": "<<(s.p50_us<10.0?"true":"false")<<",\n"
@@ -175,24 +180,28 @@ std::string make_report(std::uint64_t messages,std::uint64_t warmup,const Summar
 int main(int argc,char** argv) {
   try {
     std::uint64_t messages=200000,warmup=20000;
+    std::size_t capacity=64;
     std::string out_path;
     for(int i=1;i<argc;++i) {
       const std::string arg=argv[i];
       if(arg=="--messages"&&i+1<argc)messages=std::stoull(argv[++i]);
       else if(arg=="--warmup"&&i+1<argc)warmup=std::stoull(argv[++i]);
+      else if(arg=="--capacity"&&i+1<argc)capacity=static_cast<std::size_t>(std::stoull(argv[++i]));
       else if(arg=="--out"&&i+1<argc)out_path=argv[++i];
       else if(arg=="--help") {
-        std::cout<<"Usage: sentinel_shm_spsc_ipc_benchmark [--messages COUNT] [--warmup COUNT] [--out PATH]\n";
+        std::cout<<"Usage: sentinel_shm_spsc_ipc_benchmark [--messages COUNT] [--warmup COUNT] [--capacity POWER_OF_TWO] [--out PATH]\n";
         return 0;
       } else throw std::invalid_argument("unknown or incomplete argument: "+arg);
     }
     require(messages>0,"--messages must be positive");
+    require(capacity>=2&&capacity<=kMaxCapacity&&(capacity&(capacity-1))==0,
+            "--capacity must be a power of two from 2 through 4096");
     require(warmup<=std::numeric_limits<std::uint64_t>::max()-messages,"message count overflow");
     const auto total=messages+warmup;
     void* memory=mmap(nullptr,sizeof(SharedSpscQueue),PROT_READ|PROT_WRITE,
                       MAP_SHARED|MAP_ANONYMOUS,-1,0);
     require(memory!=MAP_FAILED,"mmap failed");
-    auto* queue=new(memory) SharedSpscQueue();
+    auto* queue=new(memory) SharedSpscQueue(capacity);
     require(queue->lock_free(),"this host does not provide lock-free atomics for the shared queue");
     int ready_pipe[2],result_pipe[2];
     if(pipe(ready_pipe)!=0||pipe(result_pipe)!=0) {

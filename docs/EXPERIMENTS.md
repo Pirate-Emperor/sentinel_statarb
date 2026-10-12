@@ -99,7 +99,8 @@ The separate `sentinel_shm_spsc_ipc_benchmark` passes ticks through a single-pro
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel
-./build/cpp/sentinel_shm_spsc_ipc_benchmark --messages 200000 --warmup 20000 --out artifacts/shm_spsc_ipc_benchmark.json
+./build/cpp/sentinel_shm_spsc_ipc_benchmark --messages 200000 --warmup 20000 --capacity 64 --out artifacts/shm_spsc_ipc_benchmark.json
+python scripts/run_shm_spsc_capacity_sweep.py --messages 200000 --warmup 20000 --out-dir artifacts
 python scripts/make_artifacts.py
 python scripts/validate_reports.py
 ```
@@ -107,6 +108,22 @@ python scripts/validate_reports.py
 The report checks and states whether the shared-memory atomics are lock-free on that host. It also sets `sub_10_us_p50` from the actual p50 result. Only use a sub-10 μs claim if that flag is true for the measured run; never infer it from the C++ processing benchmark or from ZeroMQ socket latency.
 
 ![Lock-free shared-memory SPSC IPC latency](assets/shm-spsc-ipc-latency.svg)
+
+## Shared-memory queue capacity sweep
+
+Queue size is a latency/throughput choice. A large queue can stay full while a fast producer runs ahead of the consumer, so a message may wait in the ring even when the atomic handoff itself is fast. The capacity sweep tests **16, 64, 256, and 1,024 slots**. Each setting starts a fresh producer/consumer process pair, discards a warm-up, measures 200,000 messages, and checks lock-free atomics, all sequence numbers, and all timestamps.
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+python scripts/run_shm_spsc_capacity_sweep.py --messages 200000 --warmup 20000 --out-dir artifacts
+python scripts/make_artifacts.py
+python scripts/validate_reports.py
+```
+
+The script saves one JSON report per capacity, plus `shm_spsc_capacity_sweep.json` and `shm_spsc_capacity_sweep.csv`. The SVG compares p50 and p99 latency with throughput. Use the smallest p50 only after checking p99, throughput, and sequence validation; do not choose a capacity from latency alone.
+
+![Shared-memory queue capacity sweep](assets/shm-spsc-capacity-sweep.svg)
 
 ## DuckDB batch-size comparison
 

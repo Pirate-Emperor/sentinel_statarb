@@ -269,6 +269,62 @@ def shared_memory_latency(report):
         t(40,485,"The chart checks lock-free atomics separately from ZeroMQ socket measurements.",14,"#c8d2e1")]
     save("shm-spsc-ipc-latency.svg",1120,500,parts)
 
+def shared_memory_sweep_chart(report):
+    data=json.loads(report.read_text())
+    rows=sorted(data["results"],key=lambda row:int(row["queue_capacity"]))
+    maximum=max(10.0,max(float(row["p50_one_way_us"]) for row in rows))
+    colors=["#64c8e6","#b39cf4","#68dca7","#df9c47"]
+    parts=['<rect width="1200" height="600" fill="#101827"/>',
+        t(40,48,"LOCK-FREE IPC / QUEUE CAPACITY SWEEP",16,"#72d9be",700),
+        t(40,89,f"{int(data['measured_messages_per_capacity']):,} measured messages per capacity after {int(data['warmup_messages_per_capacity']):,} warm-up",21,"#f3f6fb",700),
+        t(40,121,"Same shared-memory producer/consumer path; smaller capacity limits queue backlog.",15,"#aab8ce")]
+    for index,row in enumerate(rows):
+        y=190+index*83
+        capacity=int(row["queue_capacity"])
+        p50=float(row["p50_one_way_us"])
+        p99=float(row["p99_one_way_us"])
+        rate=float(row["throughput_messages_per_second"])
+        met=p50<10.0
+        parts += [rect(40,y-31,1120,70,"#1a2638"),
+            t(60,y-4,f"Capacity {capacity}",16,colors[index],700),
+            rect(245,y-18,470,22,"#2b384d","#2b384d",5),
+            rect(245,y-18,470*p50/maximum,22,colors[index],colors[index],5),
+            t(245,y+24,f"P50 {p50:.3f} us · P99 {p99:.3f} us",14,"#f3f6fb",700),
+            t(755,y-2,f"{rate:,.0f} msg/s",15,"#c8d2e1",700),
+            t(970,y-2,"TARGET MET" if met else "over 10 us",14,"#72d9be" if met else "#ffbc78",700)]
+    best=int(data["best_p50_capacity"])
+    parts += [rect(40,535,1120,38,"#202c3d","#40536c",7),
+        t(60,560,f"Lowest observed p50: capacity {best}. Keep this result machine-specific; also check p99 and throughput.",14,"#f3f6fb",700)]
+    save("shm-spsc-capacity-sweep.svg",1200,600,parts)
+
+def shared_memory_sweep_chart(report):
+    data=json.loads(report.read_text())
+    rows=sorted(data["results"],key=lambda row:int(row["queue_capacity"]))
+    max_us=max(10.0,max(float(row["p50_one_way_us"]) for row in rows))
+    colors=["#64c8e6","#b39cf4","#68dca7","#df9c47"]
+    parts=['<rect width="1200" height="600" fill="#101827"/>',
+        t(40,48,"LOCK-FREE IPC / QUEUE CAPACITY SWEEP",16,"#72d9be",700),
+        t(40,89,f"{int(data['measured_messages_per_capacity']):,} measured messages per capacity after {int(data['warmup_messages_per_capacity']):,} warm-up",21,"#f3f6fb",700),
+        t(40,121,"Same shared-memory producer/consumer path; smaller capacity limits queue backlog.",15,"#aab8ce")]
+    for index,row in enumerate(rows):
+        y=190+index*83
+        capacity=int(row["queue_capacity"])
+        p50=float(row["p50_one_way_us"])
+        p99=float(row["p99_one_way_us"])
+        rate=float(row["throughput_messages_per_second"])
+        passed=p50<10.0
+        parts += [rect(40,y-31,1120,70,"#1a2638"),
+            t(60,y-4,f"Capacity {capacity}",16,colors[index],700),
+            rect(245,y-18,470,22,"#2b384d","#2b384d",5),
+            rect(245,y-18,470*p50/max_us,22,colors[index],colors[index],5),
+            t(245,y+24,f"P50 {p50:.3f} us · P99 {p99:.3f} us",14,"#f3f6fb",700),
+            t(755,y-2,f"{rate:,.0f} msg/s",15,"#c8d2e1",700),
+            t(970,y-2,"TARGET MET" if passed else "over 10 us",14,"#72d9be" if passed else "#ffbc78",700)]
+    best=int(data["best_p50_capacity"])
+    parts += [rect(40,535,1120,38,"#202c3d","#40536c",7),
+        t(60,560,f"Lowest observed p50: capacity {best}. Also check p99 and throughput; results depend on the host.",14,"#f3f6fb",700)]
+    save("shm-spsc-capacity-sweep.svg",1200,600,parts)
+
 def main():
     d=json.loads((R/"artifacts"/"experiment_summary.json").read_text())
     architecture();flow();dashboard(d);charts(d)
@@ -279,6 +335,10 @@ def main():
     if native_oneway.exists():one_way_latency(native_oneway)
     shared_memory=R/"artifacts"/"shm_spsc_ipc_benchmark.json"
     if shared_memory.exists():shared_memory_latency(shared_memory)
+    shared_sweep=R/"artifacts"/"shm_spsc_capacity_sweep.json"
+    if shared_sweep.exists():shared_memory_sweep_chart(shared_sweep)
+    shared_sweep=R/"artifacts"/"shm_spsc_capacity_sweep.json"
+    if shared_sweep.exists():shared_memory_sweep_chart(shared_sweep)
     cpp_report=R/"artifacts"/"cpp_benchmark.json"
     if not cpp_report.exists():cpp_report=R/"artifacts"/"cpp_benchmark_10m.json"
     if cpp_report.exists():latency("cpp-benchmark.svg",cpp_report,"cpp")

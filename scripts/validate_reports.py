@@ -182,6 +182,9 @@ def check_shared_memory_if_present() -> None:
         return
     row = load_json(path)
     messages = int(row["measured_messages"])
+    capacity = int(row["queue_capacity"])
+    if capacity < 2 or capacity > 4096 or capacity & (capacity - 1):
+        fail("shared-memory queue capacity must be a power of two from 2 through 4096")
     if messages < 1 or int(row["timed_sample_count"]) != messages:
         fail("shared-memory IPC sample count differs from measured messages")
     if row.get("payload_check") != "passed":
@@ -200,6 +203,50 @@ def check_shared_memory_if_present() -> None:
         fail("shared-memory sub-10 us flag does not match measured p50")
     target = "MET" if pcts[0] < 10.0 else "NOT MET"
     print(f"PASS shared-memory SPSC: p50={pcts[0]:.3f} us; sub-10 us p50 target {target}")
+
+
+def check_shared_memory_sweep_if_present() -> None:
+    path = ARTIFACTS / "shm_spsc_capacity_sweep.json"
+    csv_path = ARTIFACTS / "shm_spsc_capacity_sweep.csv"
+    if not path.exists():
+        print("SKIP shared-memory capacity sweep (report not generated)")
+        return
+    row = load_json(path)
+    expected = {16, 64, 256, 1024}
+    results = row.get("results", [])
+    capacities = {int(item["queue_capacity"]) for item in results}
+    if capacities != expected or len(results) != len(expected):
+        fail("shared-memory sweep must contain capacity settings 16, 64, 256, and 1024")
+    messages = int(row["measured_messages_per_capacity"])
+    warmup = int(row["warmup_messages_per_capacity"])
+    p50_by_capacity = {}
+    for item in results:
+        capacity = int(item["queue_capacity"])
+        if int(item["measured_messages"]) != messages or int(item["warmup_messages"]) != warmup:
+            fail(f"shared-memory capacity {capacity}: message counts differ from sweep settings")
+        if item.get("payload_check") != "passed" or not bool(item.get("shared_memory_is_lock_free", False)):
+            fail(f"shared-memory capacity {capacity}: payload or lock-free check failed")
+        if int(item.get("bad_sequences", -1)) != 0 or int(item.get("invalid_timestamps", -1)) != 0:
+            fail(f"shared-memory capacity {capacity}: sequence or timestamp errors")
+        pcts = [number(item[key], key) for key in
+                ("p50_one_way_us", "p95_one_way_us", "p99_one_way_us", "max_one_way_us")]
+        if not (0 <= pcts[0] <= pcts[1] <= pcts[2] <= pcts[3]):
+            fail(f"shared-memory capacity {capacity}: invalid latency quantiles")
+        if number(item["throughput_messages_per_second"], "shared-memory throughput") <= 0:
+            fail(f"shared-memory capacity {capacity}: throughput must be positive")
+        if bool(item.get("sub_10_us_p50", False)) != (pcts[0] < 10.0):
+            fail(f"shared-memory capacity {capacity}: sub-10 us flag does not match p50")
+        p50_by_capacity[capacity] = pcts[0]
+    best = min(p50_by_capacity, key=p50_by_capacity.get)
+    if int(row["best_p50_capacity"]) != best:
+        fail("shared-memory sweep best_p50_capacity does not match the measured results")
+    if not csv_path.is_file():
+        fail("shared-memory capacity sweep CSV is missing")
+    with csv_path.open(newline="", encoding="utf-8") as stream:
+        csv_rows = list(csv.DictReader(stream))
+    if {int(item["queue_capacity"]) for item in csv_rows} != expected or len(csv_rows) != len(expected):
+        fail("shared-memory capacity sweep CSV rows do not match JSON")
+    print(f"PASS shared-memory sweep: {len(results)} lock-free capacities; best p50 at capacity {best}")
 
 
 def check_storage_if_present() -> None:
@@ -320,6 +367,7 @@ def main() -> int:
         check_zmq()
         check_native_zmq_if_present()
         check_shared_memory_if_present()
+        check_shared_memory_sweep_if_present()
         check_storage_if_present()
         check_storage_sweep_if_present()
         check_svgs_and_readme()

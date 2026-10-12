@@ -77,7 +77,8 @@ bash scripts/run_cpp_benchmark.sh 10000000 artifacts/cpp_benchmark_10m.json
 python scripts/benchmark_zmq_ipc.py --ticks 20000 --warmup 2000 --out artifacts/zmq_ipc_benchmark.json
 
 # Native C++ ZeroMQ IPC benchmarks (after installing libzmq3-dev and pkg-config)
-./build/cpp/sentinel_shm_spsc_ipc_benchmark --messages 200000 --warmup 20000 --out artifacts/shm_spsc_ipc_benchmark.json
+./build/cpp/sentinel_shm_spsc_ipc_benchmark --messages 200000 --warmup 20000 --capacity 64 --out artifacts/shm_spsc_ipc_benchmark.json
+python scripts/run_shm_spsc_capacity_sweep.py --messages 200000 --warmup 20000 --out-dir artifacts
 ./build/cpp/sentinel_zmq_ipc_oneway_benchmark --messages 20000 --warmup 2000 --out artifacts/cpp_zmq_ipc_oneway_benchmark.json
 ./build/cpp/sentinel_zmq_ipc_benchmark --messages 20000 --warmup 2000 --out artifacts/cpp_zmq_ipc_benchmark.json
 
@@ -116,6 +117,8 @@ GitHub Actions runs the unit tests, native C++ queue tests, 100K quote experimen
 
 ![Lock-free shared-memory SPSC IPC latency](docs/assets/shm-spsc-ipc-latency.svg)
 
+![Shared-memory queue-capacity sweep](docs/assets/shm-spsc-capacity-sweep.svg)
+
 ![DuckDB batch-size comparison](docs/assets/storage-batch-sweep.svg)
 
 See the [experiment notes](docs/EXPERIMENTS.md) and [reports and diagrams index](docs/README.md) for the saved results and how to reproduce them.
@@ -134,6 +137,7 @@ A 5 bps stop-limit offset sets a price boundary; it does not promise a fill. The
 
 - `sentinel_runtime/`: Python quote validation, debouncing, risk rules, ZeroMQ bridge, and DuckDB writer
 - `cpp/`: C++17 event simulation, process-shared lock-free SPSC ring, ZeroMQ benchmarks, and native tests
+- `artifacts/`: reports from the shared-memory queue capacity sweep and the storage checks
 - `tests/`: Python unit and integration tests
 - `scripts/`: benchmarks, report generation, and report validation
 - `artifacts/`: synthetic experiment results in CSV/JSON format
