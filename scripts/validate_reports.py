@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import json
 import math
+import os
 import re
 import sys
 import xml.etree.ElementTree as ET
@@ -142,6 +143,38 @@ def check_zmq() -> None:
     print("PASS ZeroMQ report counts, payload status, and quantiles")
 
 
+def check_native_zmq_if_present() -> None:
+    specs = (
+        ("cpp_zmq_ipc_oneway_benchmark.json", "p50_one_way_us", "p95_one_way_us", "p99_one_way_us", "max_one_way_us"),
+        ("cpp_zmq_ipc_benchmark.json", "p50_round_trip_us", "p95_round_trip_us", "p99_round_trip_us", "max_round_trip_us"),
+    )
+    for filename, p50, p95, p99, maximum in specs:
+        path = ARTIFACTS / filename
+        if not path.exists():
+            print(f"SKIP {filename} (native libzmq benchmark has not been run)")
+            continue
+        row = load_json(path)
+        measured = int(row["measured_messages"])
+        if measured < 1 or int(row["timed_sample_count"]) != measured:
+            fail(f"{filename}: timed sample count differs from measured messages")
+        if row.get("payload_check") != "passed" or int(row.get("bad_payloads", 0)) != 0:
+            fail(f"{filename}: IPC payload validation failed")
+        if bool(row.get("transport_is_lock_free", False)):
+            fail(f"{filename}: do not label ZeroMQ transport as lock-free")
+        values = [number(row[key], key) for key in (p50, p95, p99, maximum)]
+        if not (0 <= values[0] <= values[1] <= values[2] <= values[3]):
+            fail(f"{filename}: latency quantiles are not ordered")
+        throughput_key = "receiver_throughput_messages_per_second" if "oneway" in filename else "throughput_round_trips_per_second"
+        if number(row[throughput_key], throughput_key) <= 0:
+            fail(f"{filename}: throughput must be positive")
+        if "oneway" in filename and "sub_10_us_p50" in row:
+            if bool(row["sub_10_us_p50"]) != (values[0] < 10.0):
+                fail(f"{filename}: sub-10 us target flag does not match the measured p50")
+        unit = "one-way" if "oneway" in filename else "round-trip"
+        target = "MET" if "oneway" in filename and values[0] < 10.0 else "NOT MET" if "oneway" in filename else "measured"
+        print(f"PASS {filename}: {unit} p50={values[0]:.3f} us; sub-10 us p50 target {target}")
+
+
 def check_storage_if_present() -> None:
     path = ARTIFACTS / "storage_benchmark.json"
     if not path.exists():
@@ -149,6 +182,9 @@ def check_storage_if_present() -> None:
         return
     row = load_json(path)
     count = int(row["rows_requested"])
+    minimum_rows = int(os.environ.get("SENTINEL_MIN_STORAGE_ROWS", "1"))
+    if count < minimum_rows:
+        fail(f"DuckDB report has {count:,} rows; this run requires at least {minimum_rows:,}")
     if count < 1 or any(int(row[key]) != count for key in
                         ("rows_written_by_logger", "rows_read_back", "distinct_sequences")):
         fail("DuckDB requested, written, read-back, and unique row counts differ")
@@ -158,7 +194,45 @@ def check_storage_if_present() -> None:
         fail("DuckDB warm-up metadata is inconsistent")
     if number(row["rows_per_second"], "DuckDB throughput") <= 0 or int(row["database_bytes"]) < 1:
         fail("DuckDB throughput or database size is invalid")
+    if int(row.get("bad_quotes", 0)) != 0:
+        fail("DuckDB stored rows contain invalid bid/ask quotes")
     print(f"PASS DuckDB report: {count:,} unique rows verified")
+
+
+def check_storage_sweep_if_present() -> None:
+    path = ARTIFACTS / "storage_batch_sweep.json"
+    csv_path = ARTIFACTS / "storage_batch_sweep.csv"
+    if not path.exists():
+        print("SKIP DuckDB batch-size sweep (run run_storage_batch_sweep.py to create a report)")
+        return
+    row = load_json(path)
+    count = int(row["ticks_per_run"])
+    results = row.get("results", [])
+    sizes = {int(item["batch_size"]) for item in results}
+    if sizes != {1000, 10000, 50000} or len(results) != 3:
+        fail("DuckDB batch sweep must contain 1K, 10K, and 50K row batches")
+    for item in results:
+        size = int(item["batch_size"])
+        if int(item["warmup_runs"]) != 1 or int(item["measured_runs"]) != 1:
+            fail(f"batch {size}: expected one warm-up and one measured run")
+        if int(item["warmup_row_count"]) != count:
+            fail(f"batch {size}: warm-up tick count differs from experiment setting")
+        if any(int(item[key]) != count for key in
+               ("rows_requested", "rows_written_by_logger", "rows_read_back", "distinct_sequences")):
+            fail(f"batch {size}: stored row counts do not match")
+        if int(item["first_sequence"]) != 0 or int(item["last_sequence"]) != count - 1:
+            fail(f"batch {size}: stored sequence range is incomplete")
+        if int(item.get("bad_quotes", 0)) != 0:
+            fail(f"batch {size}: invalid bid/ask quote found in stored rows")
+        if number(item["rows_per_second"], f"batch {size} throughput") <= 0:
+            fail(f"batch {size}: throughput must be positive")
+    if not csv_path.is_file():
+        fail("storage_batch_sweep.csv is missing")
+    with csv_path.open(newline="", encoding="utf-8") as stream:
+        csv_rows = list(csv.DictReader(stream))
+    if {int(item["batch_size"]) for item in csv_rows} != sizes or len(csv_rows) != len(results):
+        fail("DuckDB batch sweep CSV does not match JSON results")
+    print("PASS DuckDB batch-size sweep: 3 verified settings")
 
 
 def check_svgs_and_readme() -> None:
@@ -217,7 +291,9 @@ def main() -> int:
         check_experiment()
         check_cpp()
         check_zmq()
+        check_native_zmq_if_present()
         check_storage_if_present()
+        check_storage_sweep_if_present()
         check_svgs_and_readme()
     except (KeyError, TypeError, ValueError, OSError) as exc:
         fail(str(exc))

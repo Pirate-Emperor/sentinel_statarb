@@ -70,16 +70,48 @@ The current saved result does not support a sub-10 μs ZeroMQ claim. The lock-fr
 
 ![ZeroMQ IPC round-trip benchmark](assets/zmq-ipc-latency.svg)
 
+## Native C++ ZeroMQ IPC
+
+The native C++ benchmark uses two separate processes and a Unix-domain `ipc://` socket. The one-way test embeds a timestamp from the host's monotonic clock in each message and measures it at the receiver. It drops 2,000 warm-up messages from the reported sample set, then checks sequence numbers and reports p50, p95, p99, maximum latency, and throughput.
+
+```bash
+sudo apt-get install libzmq3-dev pkg-config
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+./build/cpp/sentinel_zmq_ipc_oneway_benchmark --messages 20000 --warmup 2000 --out artifacts/cpp_zmq_ipc_oneway_benchmark.json
+./build/cpp/sentinel_zmq_ipc_benchmark --messages 20000 --warmup 2000 --out artifacts/cpp_zmq_ipc_benchmark.json
+python scripts/make_artifacts.py
+python scripts/validate_reports.py
+```
+
+The one-way chart is replaced using the measured JSON file. Treat a p50 below 10 μs as met only when that measured report shows it. The benchmark is machine-dependent and is not used to claim that the ZeroMQ transport itself is lock-free. The native SPSC ring's lock-free atomics are checked separately.
+
+![Native C++ one-way IPC latency](assets/zmq-ipc-oneway-latency.svg)
+
+The existing Python benchmark remains useful for a process-to-process request/reply path, but Python and scheduling add overhead. Its round-trip values must not be compared directly with one-way C++ latency.
+
+## DuckDB batch-size comparison
+
+The quick CI job also runs 100,000 synthetic ticks with batch sizes of 1,000, 10,000, and 50,000 rows. Each batch-size setting gets its own warm-up database and separate measured database. The measured database is checked for the requested row count, unique sequence range, and valid bid/ask values before its throughput is compared. The sweep saves `storage_batch_sweep.json` and `storage_batch_sweep.csv`, then creates the chart below.
+
+```bash
+python scripts/run_storage_batch_sweep.py --ticks 100000 --out-dir artifacts
+python scripts/make_artifacts.py
+python scripts/validate_reports.py
+```
+
+![DuckDB batch-size comparison](assets/storage-batch-sweep.svg)
+
 ## DuckDB storage stress test
 
 Run the test with the storage extra installed:
 
 ```bash
 python -m pip install -e ".[storage]"
-python scripts/benchmark_storage.py --ticks 10000000 --batch-size 10000 --out artifacts/stress_ticks.duckdb
+python scripts/benchmark_storage.py --ticks 10100000 --batch-size 10000 --out artifacts/stress_ticks.duckdb
 ```
 
-The script performs a full warm-up write and a separate measured write. It then opens the measured database and verifies that the logger's written-row counter and the database's row count both equal the requested count, all sequence numbers are unique, and the sequence range is exactly `0` through `count - 1`. It saves timing and row checks in `artifacts/storage_benchmark.json`. The local database is ignored by Git.
+The CI storage job writes and verifies 10.1 million rows. It has a 120-minute limit, separate from the 30-minute unit-test job. The script prints queued progress for both passes, performs a full warm-up write and a separate measured write. It then opens the measured database and verifies that the logger's written-row counter and the database's row count both equal the requested count, all sequence numbers are unique, and the sequence range is exactly `0` through `count - 1`. It saves timing and row checks in `artifacts/storage_benchmark.json`. The local database is ignored by Git.
 
 A cancelled or interrupted run is not a successful result. Only report a throughput number once the read-back checks finish.
 

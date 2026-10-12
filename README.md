@@ -12,8 +12,8 @@ All examples use synthetic data. The project does not connect to a broker or pla
 - **Quote checks:** Reject repeated sequence numbers, out-of-order timestamps, stale quotes, and timestamps too far in the future.
 - **Dynamic debouncer:** Holds back repeated strategy signals for longer after a sharp price move. Protective order checks still run for every quote that passes the quality checks.
 - **OCO stop-limit model:** Tests stop/target behavior and a 5 bps stop-limit offset. A triggered stop-limit order can remain unfilled after a large gap.
-- **ZeroMQ bridge:** Sends validated tick messages over an IPC or TCP socket. The benchmark is a process-to-process round trip, not a one-way measurement.
-- **DuckDB writer:** Uses a bounded queue and a separate writer thread. Vectorized batch inserts reduce per-row database overhead; read-back checks verify every sequence.
+- **ZeroMQ bridge:** Sends validated tick messages over IPC or TCP. Native C++ tests measure one-way IPC latency and round-trip latency separately; the reports do not label ZeroMQ itself as lock-free.
+- **DuckDB writer:** Uses a bounded queue and a separate writer thread. Pandas DataFrame batches reduce per-row insert overhead; read-back checks verify every sequence and quote.
 - **Repeatable experiments:** Save CSV/JSON measurements and SVG diagrams for the quote policies, crash scenario, and timing results.
 
 ## System view
@@ -24,7 +24,7 @@ All examples use synthetic data. The project does not connect to a broker or pla
 
 ## Quick start
 
-Requirements: Python 3.10+, a C++17 compiler, and CMake 3.16+.
+Requirements: Python 3.10+, a C++17 compiler, and CMake 3.16+. The native ZeroMQ benchmark is optional and needs the libzmq development package plus pkg-config (for Ubuntu: `sudo apt-get install libzmq3-dev pkg-config`).
 
 ```bash
 python -m venv .venv
@@ -57,7 +57,7 @@ Run the combined local checks:
 bash scripts/run_checks.sh
 ```
 
-The combined script runs smaller storage checks by default. Set `SENTINEL_STORAGE_TICKS=10000000` to run the full storage size locally.
+The combined script runs smaller storage checks by default. Set `SENTINEL_STORAGE_TICKS=10100000` to run the full storage size locally.
 
 ## Repeatable experiments
 
@@ -72,20 +72,27 @@ python scripts/run_experiments.py --ticks 1000000 --repeats 3
 bash scripts/run_cpp_benchmark.sh 1000000 artifacts/cpp_benchmark.json
 bash scripts/run_cpp_benchmark.sh 10000000 artifacts/cpp_benchmark_10m.json
 
-# ZeroMQ IPC round-trip benchmark
+# Python ZeroMQ process-to-process round trip
 python scripts/benchmark_zmq_ipc.py --ticks 20000 --warmup 2000 --out artifacts/zmq_ipc_benchmark.json
 
+# Native C++ ZeroMQ IPC benchmarks (after installing libzmq3-dev and pkg-config)
+./build/cpp/sentinel_zmq_ipc_oneway_benchmark --messages 20000 --warmup 2000 --out artifacts/cpp_zmq_ipc_oneway_benchmark.json
+./build/cpp/sentinel_zmq_ipc_benchmark --messages 20000 --warmup 2000 --out artifacts/cpp_zmq_ipc_benchmark.json
+
 # Separate warm-up and measured DuckDB writes, then verify every row and sequence
-python scripts/benchmark_storage.py --ticks 10000000 --batch-size 10000 --out artifacts/stress_ticks.duckdb
+python scripts/benchmark_storage.py --ticks 10100000 --batch-size 10000 --out artifacts/stress_ticks.duckdb
+
+# Compare batch sizes using 100K ticks per run
+python scripts/run_storage_batch_sweep.py --ticks 100000 --out-dir artifacts
 
 # Refresh the diagrams from the saved JSON reports
 python scripts/make_artifacts.py
 python scripts/validate_reports.py
 ```
 
-The DuckDB command writes a separate warm-up database and measured database. It reads the measured database back and checks the row count, distinct sequence count, and sequence range. Database files are local test outputs and are not meant to be committed.
+The DuckDB command writes a separate warm-up database and measured database. It reads the measured database back and checks the row count, distinct sequence count, sequence range, and bid/ask values. It prints progress during both passes. Database files are local test outputs and are not meant to be committed.
 
-GitHub Actions runs Python tests, C++ tests, the 100K quote experiment, 1M and 10M C++ benchmarks, ZeroMQ IPC tests, and the 10M-row DuckDB check. A run is successful only when the steps complete and their checks pass. See [the workflow](.github/workflows/ci.yml).
+GitHub Actions runs the unit tests, native C++ queue tests, 100K quote experiments, 1M and 10M C++ processing benchmarks, native C++ and Python ZeroMQ tests, and a real 100K-row DuckDB smoke test in the regular job. A separate 120-minute job runs the 10M-row DuckDB warm-up and measured passes so the normal 30-minute test limit cannot cancel it. A run is successful only when the report and data checks finish. See [the workflow](.github/workflows/ci.yml).
 
 ## Analysis and experiment images
 
@@ -101,7 +108,11 @@ GitHub Actions runs Python tests, C++ tests, the 100K quote experiment, 1M and 1
 
 ![Native C++ benchmark](docs/assets/cpp-benchmark.svg)
 
-![ZeroMQ IPC round-trip benchmark](docs/assets/zmq-ipc-latency.svg)
+![Python ZeroMQ IPC round-trip benchmark](docs/assets/zmq-ipc-latency.svg)
+
+![Native C++ ZeroMQ one-way IPC latency](docs/assets/zmq-ipc-oneway-latency.svg)
+
+![DuckDB batch-size comparison](docs/assets/storage-batch-sweep.svg)
 
 See the [experiment notes](docs/EXPERIMENTS.md) and [reports and diagrams index](docs/README.md) for the saved results and how to reproduce them.
 
@@ -111,7 +122,7 @@ The checked-in JSON/CSV files and diagrams are reference runs from synthetic dat
 
 The saved 10M C++ report records about **34.55 million events/second** and **0.043 μs sampled p99 processing latency** for that run. That is sampled native event-processing time, not end-to-end market latency.
 
-The saved ZeroMQ report records about **96.9 μs p50** and **700.4 μs p99** round-trip latency. This does **not** show sub-10 μs IPC, and ZeroMQ is not claimed to be lock-free. The in-process C++ SPSC ring and the ZeroMQ process-to-process path are separate measurements.
+The saved Python ZeroMQ report records about **96.9 μs p50** and **700.4 μs p99** round-trip latency. That does not show sub-10 μs IPC. The native C++ one-way benchmark is now measured separately, using timestamps from the same host clock; its current-run report determines whether the sub-10 μs one-way target is met. ZeroMQ itself is not claimed to be lock-free: that property is checked separately for the native SPSC ring.
 
 A 5 bps stop-limit offset sets a price boundary; it does not promise a fill. The gap sweep deliberately includes price moves larger than the offset so this limitation is visible in the tests.
 

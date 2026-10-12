@@ -200,16 +200,65 @@ def storage_chart(report):
         t(40,402,"This chart is generated only when a verified storage_benchmark.json report exists.",13,"#aab8ce")]
     save("storage-benchmark.svg",1100,420,parts)
 
+def one_way_latency(report):
+    d=json.loads(report.read_text())
+    values=[
+        ("P50",float(d["p50_one_way_us"]),"#5a9bd8"),
+        ("P95",float(d["p95_one_way_us"]),"#df9c47"),
+        ("P99",float(d["p99_one_way_us"]),"#ca6a66"),
+    ]
+    target_met=values[0][1] < 10.0
+    maximum=max(10.0,max(v for _,v,_ in values))
+    s=['<rect width="1120" height="500" fill="#101827"/>',
+       t(40,48,"NATIVE C++ / ZERO MQ IPC ONE-WAY LATENCY",16,"#72d9be",700),
+       t(40,89,f"{int(d['measured_messages']):,} measured messages after {int(d['warmup_messages']):,} warm-up",22,"#f3f6fb",700),
+       t(40,121,"C++ sender and receiver processes · IPC socket · same-host monotonic clock",15,"#aab8ce")]
+    for i,(label,value,color) in enumerate(values):
+        y=170+i*78
+        s += [t(48,y+25,label,16,color,700),
+              rect(150,y,730,38,"#2b384d","#2b384d",6),
+              rect(150,y,730*value/maximum,38,color,color,6),
+              t(min(910,165+730*value/maximum),y+25,f"{value:.3f} us",17,"#f3f6fb",700)]
+    s += [rect(40,414,1040,42,"#202c3d","#40536c",8),
+          t(60,441,"Sub-10 us p50: " + ("MET on this run" if target_met else "NOT MET on this run"),16,"#72d9be" if target_met else "#ffbc78",700),
+          t(40,485,"Machine-dependent measurement; ZeroMQ itself is not a lock-free transport.",14,"#c8d2e1")]
+    save("zmq-ipc-oneway-latency.svg",1120,500,s)
+
+def storage_sweep_chart(report):
+    data=json.loads(report.read_text())
+    rows=sorted(data["results"],key=lambda row:int(row["batch_size"]))
+    maximum=max(float(row["rows_per_second"]) for row in rows) or 1
+    parts=['<rect width="1120" height="470" fill="#101827"/>',
+        t(40,48,"DUCKDB / BATCH-SIZE EXPERIMENT",16,"#72d9be",700),
+        t(40,89,f"{int(data['ticks_per_run']):,} ticks per run · one warm-up and one measured run",22,"#f3f6fb",700),
+        t(40,121,"Every measured database is read back and sequence-checked.",15,"#aab8ce")]
+    colors=["#64c8e6","#b39cf4","#68dca7"]
+    for index,row in enumerate(rows):
+        y=180+index*88
+        rate=float(row["rows_per_second"])
+        parts += [rect(40,y-31,1040,70,"#1a2638"),
+            t(60,y-5,f"Batch {int(row['batch_size']):,}",16,colors[index],700),
+            rect(250,y-20,500,22,"#2b384d","#2b384d",5),
+            rect(250,y-20,500*rate/maximum,22,colors[index],colors[index],5),
+            t(250,y+23,f"{rate:,.0f} rows/s",15,"#f3f6fb",700),
+            t(800,y-2,f"P95 not sampled · {int(row['rows_read_back']):,} rows verified",14,"#c8d2e1")]
+    parts += [t(40,450,"Machine-specific result; use the same hardware and tick count when comparing batch sizes.",14,"#aab8ce")]
+    save("storage-batch-sweep.svg",1120,470,parts)
+
 def main():
     d=json.loads((R/"artifacts"/"experiment_summary.json").read_text())
     architecture();flow();dashboard(d);charts(d)
     data_quality(d);performance_comparison(d);experiment_pipeline()
     zmq_report=R/"artifacts"/"zmq_ipc_benchmark.json"
     if zmq_report.exists():latency("zmq-ipc-latency.svg",zmq_report,"zmq")
+    native_oneway=R/"artifacts"/"cpp_zmq_ipc_oneway_benchmark.json"
+    if native_oneway.exists():one_way_latency(native_oneway)
     cpp_report=R/"artifacts"/"cpp_benchmark.json"
     if not cpp_report.exists():cpp_report=R/"artifacts"/"cpp_benchmark_10m.json"
     if cpp_report.exists():latency("cpp-benchmark.svg",cpp_report,"cpp")
     storage_report=R/"artifacts"/"storage_benchmark.json"
     if storage_report.exists():storage_chart(storage_report)
+    sweep_report=R/"artifacts"/"storage_batch_sweep.json"
+    if sweep_report.exists():storage_sweep_chart(sweep_report)
     print(f"Generated SVG reports in {A}")
 if __name__=="__main__":main()

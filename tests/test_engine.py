@@ -90,13 +90,18 @@ class FakeDuckDBLoggerTests(unittest.IsolatedAsyncioTestCase):
         class Connection:
             def execute(self, query, parameters=None):
                 self.query = query
-                if query.startswith("INSERT INTO ticks"):
-                    rows = list(zip(*parameters))
-                    sizes.append(len(rows))
-                    written.extend(rows)
+            def append(self, table, frame):
+                self.table = table
+                sizes.append(len(frame))
+                written.extend(frame)
             def close(self): pass
+        class FakeDataFrame:
+            @staticmethod
+            def from_records(rows, columns):
+                return list(rows)
         fake=types.SimpleNamespace(connect=lambda path:Connection())
-        with tempfile.TemporaryDirectory() as d,patch.dict(sys.modules,{"duckdb":fake}):
+        fake_pandas=types.SimpleNamespace(DataFrame=FakeDataFrame)
+        with tempfile.TemporaryDirectory() as d,patch.dict(sys.modules,{"duckdb":fake,"pandas":fake_pandas}):
             logger=AsyncDuckDBTickLogger(Path(d)/"ticks.duckdb",batch_size=10,queue_size=2)
             await logger.start();await logger.log_many([Tick("X",i,i+1,99,101) for i in range(25)]);await logger.close()
         self.assertEqual(logger.rows_written,25);self.assertEqual(len(written),25);self.assertEqual(sizes,[10,10,5])
@@ -120,6 +125,7 @@ class ZeroMQTransportTests(unittest.IsolatedAsyncioTestCase):
 
 try:
     import duckdb
+    import pandas
     DUCKDB_AVAILABLE=True
 except ImportError: DUCKDB_AVAILABLE=False
 

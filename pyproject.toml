@@ -21,7 +21,7 @@ dependencies = []
 
 [project.optional-dependencies]
 ipc = ["pyzmq>=26.0"]
-storage = ["duckdb>=1.1.0"]
+storage = ["duckdb>=1.1.0", "pandas>=2.2"]
 dev = ["pytest>=8.0"]
 
 [project.urls]

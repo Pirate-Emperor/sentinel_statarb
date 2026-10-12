@@ -15,12 +15,22 @@ python scripts/run_experiments.py --ticks "$TICKS" --repeats 3 --out artifacts
 bash scripts/run_cpp_benchmark.sh "$CPP_TICKS" "$ROOT/artifacts/cpp_benchmark.json"
 python scripts/benchmark_zmq_ipc.py --ticks 3000 --warmup 500 --out artifacts/zmq_ipc_benchmark.json
 
-if python -c "import duckdb" >/dev/null 2>&1; then
-  python scripts/benchmark_storage.py --ticks "$STORAGE_TICKS" --batch-size 10000 --out "$ROOT/artifacts/stress_ticks.duckdb"
+if [ -x "$ROOT/build/cpp/sentinel_zmq_ipc_oneway_benchmark" ]; then
+  "$ROOT/build/cpp/sentinel_zmq_ipc_oneway_benchmark" --messages 5000 --warmup 500 --out artifacts/cpp_zmq_ipc_oneway_benchmark.json
 else
-  echo "DuckDB stress check skipped; install the storage extra to enable it."
+  echo "Native C++ ZeroMQ benchmark skipped; install libzmq development headers and pkg-config."
+fi
+if [ -x "$ROOT/build/cpp/sentinel_zmq_ipc_benchmark" ]; then
+  "$ROOT/build/cpp/sentinel_zmq_ipc_benchmark" --messages 5000 --warmup 500 --out artifacts/cpp_zmq_ipc_benchmark.json
 fi
 
+if python -c "import duckdb, pandas" >/dev/null 2>&1; then
+  python scripts/benchmark_storage.py --ticks "$STORAGE_TICKS" --batch-size 10000 --out "$ROOT/artifacts/stress_ticks.duckdb"
+else
+  echo "DuckDB storage smoke test skipped; install the storage extra to enable it."
+fi
+
+python scripts/run_storage_batch_sweep.py --ticks 100000 --out-dir artifacts
 python scripts/make_artifacts.py
 python scripts/validate_reports.py
 test ! -e "$ROOT/main.png"
