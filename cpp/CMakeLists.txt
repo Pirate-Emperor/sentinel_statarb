@@ -40,3 +40,13 @@ if(TARGET PkgConfig::LIBZMQ)
   add_test(NAME sentinel_zmq_ipc_roundtrip_smoke
     COMMAND sentinel_zmq_ipc_benchmark --messages 500 --warmup 100)
 endif()
+
+# Process-shared lock-free SPSC handoff, independent of ZeroMQ sockets.
+if(UNIX)
+  add_executable(sentinel_shm_spsc_ipc_benchmark shm_spsc_ipc_benchmark.cpp)
+  target_compile_features(sentinel_shm_spsc_ipc_benchmark PRIVATE cxx_std_17)
+  target_compile_options(sentinel_shm_spsc_ipc_benchmark PRIVATE -Wall -Wextra -Wpedantic)
+  target_link_libraries(sentinel_shm_spsc_ipc_benchmark PRIVATE Threads::Threads)
+  add_test(NAME sentinel_shm_spsc_ipc_smoke
+    COMMAND sentinel_shm_spsc_ipc_benchmark --messages 1000 --warmup 100)
+endif()

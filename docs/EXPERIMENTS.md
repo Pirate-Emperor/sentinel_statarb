@@ -90,6 +90,24 @@ The one-way chart is replaced using the measured JSON file. Treat a p50 below 10
 
 The existing Python benchmark remains useful for a process-to-process request/reply path, but Python and scheduling add overhead. Its round-trip values must not be compared directly with one-way C++ latency.
 
+The latest paced native C++ reference run measured **56.513 μs p50 one-way**, **63.731 μs p95**, and **67.720 μs p99** (20,000 messages after 2,000 warm-up messages). It did not meet the 10 μs target. The acknowledgement round trip had a p50 of 111.148 μs. Keep these measurements separate from the lock-free shared-memory ring below.
+
+## Lock-free shared-memory SPSC IPC
+
+The separate `sentinel_shm_spsc_ipc_benchmark` passes ticks through a single-producer/single-consumer ring in one `MAP_SHARED` memory mapping, with the producer and consumer in different processes. It checks the shared head/tail atomics with `is_lock_free()`, verifies every sequence and timestamp, excludes warm-up messages, and records p50/p95/p99 one-way handoff time. This is a different path from ZeroMQ: it does not use a ZeroMQ socket.
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+./build/cpp/sentinel_shm_spsc_ipc_benchmark --messages 200000 --warmup 20000 --out artifacts/shm_spsc_ipc_benchmark.json
+python scripts/make_artifacts.py
+python scripts/validate_reports.py
+```
+
+The report checks and states whether the shared-memory atomics are lock-free on that host. It also sets `sub_10_us_p50` from the actual p50 result. Only use a sub-10 μs claim if that flag is true for the measured run; never infer it from the C++ processing benchmark or from ZeroMQ socket latency.
+
+![Lock-free shared-memory SPSC IPC latency](assets/shm-spsc-ipc-latency.svg)
+
 ## DuckDB batch-size comparison
 
 The quick CI job also runs 100,000 synthetic ticks with batch sizes of 1,000, 10,000, and 50,000 rows. Each batch-size setting gets its own warm-up database and separate measured database. The measured database is checked for the requested row count, unique sequence range, and valid bid/ask values before its throughput is compared. The sweep saves `storage_batch_sweep.json` and `storage_batch_sweep.csv`, then creates the chart below.
@@ -111,7 +129,7 @@ python -m pip install -e ".[storage]"
 python scripts/benchmark_storage.py --ticks 10100000 --batch-size 10000 --out artifacts/stress_ticks.duckdb
 ```
 
-The CI storage job writes and verifies 10.1 million rows. It has a 120-minute limit, separate from the 30-minute unit-test job. The script prints queued progress for both passes, performs a full warm-up write and a separate measured write. It then opens the measured database and verifies that the logger's written-row counter and the database's row count both equal the requested count, all sequence numbers are unique, and the sequence range is exactly `0` through `count - 1`. It saves timing and row checks in `artifacts/storage_benchmark.json`. The local database is ignored by Git.
+The CI storage job writes and verifies 10.1 million rows in a separate 120-minute job. The last completed full-scale reference measured 10,100,000 rows in 36,306 ms (about 278,190 rows/s), with 10,100,000 unique sequences from 0 through 10,099,999 and no invalid quotes. Timing depends on the runner. The script prints queued progress for both passes, performs a full warm-up write and a separate measured write. It then opens the measured database and verifies that the logger's written-row counter and the database's row count both equal the requested count, all sequence numbers are unique, and the sequence range is exactly `0` through `count - 1`. It saves timing and row checks in `artifacts/storage_benchmark.json`. The local database is ignored by Git.
 
 A cancelled or interrupted run is not a successful result. Only report a throughput number once the read-back checks finish.
 

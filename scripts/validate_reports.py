@@ -164,7 +164,7 @@ def check_native_zmq_if_present() -> None:
         values = [number(row[key], key) for key in (p50, p95, p99, maximum)]
         if not (0 <= values[0] <= values[1] <= values[2] <= values[3]):
             fail(f"{filename}: latency quantiles are not ordered")
-        throughput_key = "receiver_throughput_messages_per_second" if "oneway" in filename else "throughput_round_trips_per_second"
+        throughput_key = "serial_round_trips_per_second" if "oneway" in filename else "throughput_round_trips_per_second"
         if number(row[throughput_key], throughput_key) <= 0:
             fail(f"{filename}: throughput must be positive")
         if "oneway" in filename and "sub_10_us_p50" in row:
@@ -173,6 +173,33 @@ def check_native_zmq_if_present() -> None:
         unit = "one-way" if "oneway" in filename else "round-trip"
         target = "MET" if "oneway" in filename and values[0] < 10.0 else "NOT MET" if "oneway" in filename else "measured"
         print(f"PASS {filename}: {unit} p50={values[0]:.3f} us; sub-10 us p50 target {target}")
+
+
+def check_shared_memory_if_present() -> None:
+    path = ARTIFACTS / "shm_spsc_ipc_benchmark.json"
+    if not path.exists():
+        print("SKIP shared-memory SPSC benchmark (report not generated)")
+        return
+    row = load_json(path)
+    messages = int(row["measured_messages"])
+    if messages < 1 or int(row["timed_sample_count"]) != messages:
+        fail("shared-memory IPC sample count differs from measured messages")
+    if row.get("payload_check") != "passed":
+        fail("shared-memory IPC payload check did not pass")
+    if not bool(row.get("shared_memory_is_lock_free", False)):
+        fail("shared-memory SPSC benchmark reports non-lock-free atomics")
+    if int(row.get("bad_sequences", -1)) != 0 or int(row.get("invalid_timestamps", -1)) != 0:
+        fail("shared-memory SPSC benchmark found sequence or timestamp errors")
+    pcts = [number(row[key], key) for key in
+            ("p50_one_way_us", "p95_one_way_us", "p99_one_way_us", "max_one_way_us")]
+    if not (0 <= pcts[0] <= pcts[1] <= pcts[2] <= pcts[3]):
+        fail("shared-memory one-way latency quantiles are invalid")
+    if number(row["throughput_messages_per_second"], "shared-memory throughput") <= 0:
+        fail("shared-memory throughput must be positive")
+    if bool(row.get("sub_10_us_p50", False)) != (pcts[0] < 10.0):
+        fail("shared-memory sub-10 us flag does not match measured p50")
+    target = "MET" if pcts[0] < 10.0 else "NOT MET"
+    print(f"PASS shared-memory SPSC: p50={pcts[0]:.3f} us; sub-10 us p50 target {target}")
 
 
 def check_storage_if_present() -> None:
@@ -292,6 +319,7 @@ def main() -> int:
         check_cpp()
         check_zmq()
         check_native_zmq_if_present()
+        check_shared_memory_if_present()
         check_storage_if_present()
         check_storage_sweep_if_present()
         check_svgs_and_readme()

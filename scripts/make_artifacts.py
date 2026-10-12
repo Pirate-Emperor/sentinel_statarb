@@ -245,6 +245,30 @@ def storage_sweep_chart(report):
     parts += [t(40,450,"Machine-specific result; use the same hardware and tick count when comparing batch sizes.",14,"#aab8ce")]
     save("storage-batch-sweep.svg",1120,470,parts)
 
+def shared_memory_latency(report):
+    d=json.loads(report.read_text())
+    values=[
+        ("P50",float(d["p50_one_way_us"]),"#64c8e6"),
+        ("P95",float(d["p95_one_way_us"]),"#b39cf4"),
+        ("P99",float(d["p99_one_way_us"]),"#68dca7"),
+    ]
+    max_value=max(10.0,max(v for _,v,_ in values))
+    passed=float(d["p50_one_way_us"])<10.0
+    parts=['<rect width="1120" height="500" fill="#101827"/>',
+        t(40,48,"LOCK-FREE IPC / SHARED-MEMORY SPSC RING",16,"#72d9be",700),
+        t(40,89,f"{int(d['measured_messages']):,} measured messages after {int(d['warmup_messages']):,} warm-up",22,"#f3f6fb",700),
+        t(40,121,"Producer and consumer are separate processes sharing one memory mapping.",15,"#aab8ce")]
+    for index,(label,value,color) in enumerate(values):
+        y=170+index*75
+        parts += [t(48,y+26,label,16,color,700),
+            rect(150,y,730,38,"#2b384d","#2b384d",6),
+            rect(150,y,730*value/max_value,38,color,color,6),
+            t(min(910,165+730*value/max_value),y+25,f"{value:.3f} us",17,"#f3f6fb",700)]
+    parts += [rect(40,414,1040,42,"#202c3d","#40536c",8),
+        t(60,441,"Sub-10 us p50: "+("MET on this run" if passed else "NOT MET on this run"),16,"#72d9be" if passed else "#ffbc78",700),
+        t(40,485,"The chart checks lock-free atomics separately from ZeroMQ socket measurements.",14,"#c8d2e1")]
+    save("shm-spsc-ipc-latency.svg",1120,500,parts)
+
 def main():
     d=json.loads((R/"artifacts"/"experiment_summary.json").read_text())
     architecture();flow();dashboard(d);charts(d)
@@ -253,6 +277,8 @@ def main():
     if zmq_report.exists():latency("zmq-ipc-latency.svg",zmq_report,"zmq")
     native_oneway=R/"artifacts"/"cpp_zmq_ipc_oneway_benchmark.json"
     if native_oneway.exists():one_way_latency(native_oneway)
+    shared_memory=R/"artifacts"/"shm_spsc_ipc_benchmark.json"
+    if shared_memory.exists():shared_memory_latency(shared_memory)
     cpp_report=R/"artifacts"/"cpp_benchmark.json"
     if not cpp_report.exists():cpp_report=R/"artifacts"/"cpp_benchmark_10m.json"
     if cpp_report.exists():latency("cpp-benchmark.svg",cpp_report,"cpp")

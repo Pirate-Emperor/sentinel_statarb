@@ -43,6 +43,8 @@ jobs:
         run: |
           bash scripts/run_cpp_benchmark.sh 1000000 artifacts/cpp_benchmark.json
           bash scripts/run_cpp_benchmark.sh 10000000 artifacts/cpp_benchmark_10m.json
+      - name: Measure lock-free shared-memory SPSC IPC after warm-up
+        run: ./build/cpp/sentinel_shm_spsc_ipc_benchmark --messages 200000 --warmup 20000 --out artifacts/shm_spsc_ipc_benchmark.json
       - name: Measure native one-way ZeroMQ IPC after warm-up
         run: ./build/cpp/sentinel_zmq_ipc_oneway_benchmark --messages 20000 --warmup 2000 --out artifacts/cpp_zmq_ipc_oneway_benchmark.json
       - name: Measure native ZeroMQ round-trip after warm-up

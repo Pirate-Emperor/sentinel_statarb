@@ -15,6 +15,9 @@ python scripts/run_experiments.py --ticks "$TICKS" --repeats 3 --out artifacts
 bash scripts/run_cpp_benchmark.sh "$CPP_TICKS" "$ROOT/artifacts/cpp_benchmark.json"
 python scripts/benchmark_zmq_ipc.py --ticks 3000 --warmup 500 --out artifacts/zmq_ipc_benchmark.json
 
+if [ -x "$ROOT/build/cpp/sentinel_shm_spsc_ipc_benchmark" ]; then
+  "$ROOT/build/cpp/sentinel_shm_spsc_ipc_benchmark" --messages 200000 --warmup 20000 --out artifacts/shm_spsc_ipc_benchmark.json
+fi
 if [ -x "$ROOT/build/cpp/sentinel_zmq_ipc_oneway_benchmark" ]; then
   "$ROOT/build/cpp/sentinel_zmq_ipc_oneway_benchmark" --messages 5000 --warmup 500 --out artifacts/cpp_zmq_ipc_oneway_benchmark.json
 else

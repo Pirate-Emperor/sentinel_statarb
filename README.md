@@ -12,7 +12,8 @@ All examples use synthetic data. The project does not connect to a broker or pla
 - **Quote checks:** Reject repeated sequence numbers, out-of-order timestamps, stale quotes, and timestamps too far in the future.
 - **Dynamic debouncer:** Holds back repeated strategy signals for longer after a sharp price move. Protective order checks still run for every quote that passes the quality checks.
 - **OCO stop-limit model:** Tests stop/target behavior and a 5 bps stop-limit offset. A triggered stop-limit order can remain unfilled after a large gap.
-- **ZeroMQ bridge:** Sends validated tick messages over IPC or TCP. Native C++ tests measure one-way IPC latency and round-trip latency separately; the reports do not label ZeroMQ itself as lock-free.
+- **ZeroMQ bridge:** Sends validated tick messages over IPC or TCP. Native C++ tests measure one-way and round-trip latency separately. ZeroMQ itself is not lock-free, and the saved run did not meet the 10 μs one-way target.
+- **Lock-free shared-memory IPC:** A native SPSC ring passes messages between two processes using shared memory. The benchmark checks whether the atomic counters are actually lock-free on the host, verifies sequence order, and measures one-way handoff time.
 - **DuckDB writer:** Uses a bounded queue and a separate writer thread. Pandas DataFrame batches reduce per-row insert overhead; read-back checks verify every sequence and quote.
 - **Repeatable experiments:** Save CSV/JSON measurements and SVG diagrams for the quote policies, crash scenario, and timing results.
 
@@ -57,7 +58,7 @@ Run the combined local checks:
 bash scripts/run_checks.sh
 ```
 
-The combined script runs smaller storage checks by default. Set `SENTINEL_STORAGE_TICKS=10100000` to run the full storage size locally.
+The combined script runs smaller storage checks by default. Set `SENTINEL_STORAGE_TICKS=10100000` to verify more than 10 million rows locally.
 
 ## Repeatable experiments
 
@@ -76,6 +77,7 @@ bash scripts/run_cpp_benchmark.sh 10000000 artifacts/cpp_benchmark_10m.json
 python scripts/benchmark_zmq_ipc.py --ticks 20000 --warmup 2000 --out artifacts/zmq_ipc_benchmark.json
 
 # Native C++ ZeroMQ IPC benchmarks (after installing libzmq3-dev and pkg-config)
+./build/cpp/sentinel_shm_spsc_ipc_benchmark --messages 200000 --warmup 20000 --out artifacts/shm_spsc_ipc_benchmark.json
 ./build/cpp/sentinel_zmq_ipc_oneway_benchmark --messages 20000 --warmup 2000 --out artifacts/cpp_zmq_ipc_oneway_benchmark.json
 ./build/cpp/sentinel_zmq_ipc_benchmark --messages 20000 --warmup 2000 --out artifacts/cpp_zmq_ipc_benchmark.json
 
@@ -92,7 +94,7 @@ python scripts/validate_reports.py
 
 The DuckDB command writes a separate warm-up database and measured database. It reads the measured database back and checks the row count, distinct sequence count, sequence range, and bid/ask values. It prints progress during both passes. Database files are local test outputs and are not meant to be committed.
 
-GitHub Actions runs the unit tests, native C++ queue tests, 100K quote experiments, 1M and 10M C++ processing benchmarks, native C++ and Python ZeroMQ tests, and a real 100K-row DuckDB smoke test in the regular job. A separate 120-minute job runs the 10M-row DuckDB warm-up and measured passes so the normal 30-minute test limit cannot cancel it. A run is successful only when the report and data checks finish. See [the workflow](.github/workflows/ci.yml).
+GitHub Actions runs the unit tests, native C++ queue tests, 100K quote experiments, 1M and 10M C++ processing benchmarks, native shared-memory and ZeroMQ tests, and real DuckDB write/read-back tests in the regular job. A separate 120-minute job runs the 10M-row DuckDB warm-up and measured passes so the normal 30-minute test limit cannot cancel it. A run is successful only when the report and data checks finish. See [the workflow](.github/workflows/ci.yml).
 
 ## Analysis and experiment images
 
@@ -112,6 +114,8 @@ GitHub Actions runs the unit tests, native C++ queue tests, 100K quote experimen
 
 ![Native C++ ZeroMQ one-way IPC latency](docs/assets/zmq-ipc-oneway-latency.svg)
 
+![Lock-free shared-memory SPSC IPC latency](docs/assets/shm-spsc-ipc-latency.svg)
+
 ![DuckDB batch-size comparison](docs/assets/storage-batch-sweep.svg)
 
 See the [experiment notes](docs/EXPERIMENTS.md) and [reports and diagrams index](docs/README.md) for the saved results and how to reproduce them.
@@ -122,14 +126,14 @@ The checked-in JSON/CSV files and diagrams are reference runs from synthetic dat
 
 The saved 10M C++ report records about **34.55 million events/second** and **0.043 μs sampled p99 processing latency** for that run. That is sampled native event-processing time, not end-to-end market latency.
 
-The saved Python ZeroMQ report records about **96.9 μs p50** and **700.4 μs p99** round-trip latency. That does not show sub-10 μs IPC. The native C++ one-way benchmark is now measured separately, using timestamps from the same host clock; its current-run report determines whether the sub-10 μs one-way target is met. ZeroMQ itself is not claimed to be lock-free: that property is checked separately for the native SPSC ring.
+The saved native C++ ZeroMQ report records about **56.5 μs p50 one-way latency** and **114.3 μs p50 round-trip latency** in a paced, 20K-message run. That does not meet a sub-10 μs ZeroMQ claim, and ZeroMQ is not lock-free. The process-shared SPSC benchmark measures the separate lock-free shared-memory path. Its report is the evidence for any sub-10 μs lock-free handoff claim; the result varies by host and must not be inferred from the ZeroMQ timing.
 
 A 5 bps stop-limit offset sets a price boundary; it does not promise a fill. The gap sweep deliberately includes price moves larger than the offset so this limitation is visible in the tests.
 
 ## Main files
 
 - `sentinel_runtime/`: Python quote validation, debouncing, risk rules, ZeroMQ bridge, and DuckDB writer
-- `cpp/`: C++17 event simulation, SPSC ring, and native tests
+- `cpp/`: C++17 event simulation, process-shared lock-free SPSC ring, ZeroMQ benchmarks, and native tests
 - `tests/`: Python unit and integration tests
 - `scripts/`: benchmarks, report generation, and report validation
 - `artifacts/`: synthetic experiment results in CSV/JSON format
