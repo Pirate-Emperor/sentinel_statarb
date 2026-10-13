@@ -43,6 +43,8 @@ jobs:
         run: |
           bash scripts/run_cpp_benchmark.sh 1000000 artifacts/cpp_benchmark.json
           bash scripts/run_cpp_benchmark.sh 10000000 artifacts/cpp_benchmark_10m.json
+      - name: Compare CPython-threaded and native C++ pipelines with semantic parity checks
+        run: python -u scripts/benchmark_gil_pipeline.py --ticks 1000000 --repeats 3 --out artifacts/gil_comparison_benchmark.json
       - name: Measure lock-free shared-memory SPSC IPC after warm-up
         run: ./build/cpp/sentinel_shm_spsc_ipc_benchmark --messages 200000 --warmup 20000 --capacity 64 --out artifacts/shm_spsc_ipc_benchmark.json
       - name: Sweep shared-memory ring capacity with warm-up per setting
