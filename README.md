@@ -144,10 +144,6 @@ The checked-in JSON/CSV files and diagrams are reference runs from synthetic dat
 The dedicated [integrator-1 HPC workflow](https://github.com/SpryzenHell/integrator/blob/main/.github/workflows/sentinel-statarb-hpc.yml) records the actual host/toolchain, runs the paired benchmark and IPC tests, and verifies 10.1M DuckDB rows. Check the [HPC workflow run history](https://github.com/SpryzenHell/integrator/actions/workflows/sentinel-statarb-hpc.yml) and its result status; machine-readable results are intended to be saved under `artifacts/sentinel-statarb-hpc/` on `integrator/main`. Its measured report—not the mere presence of an A100—is the source for any HPC-specific claim. The project and CI changes are committed directly to `main`; check the workflow result before using updated numbers.
 
 
-The checked-in 10M C++ reference report records about **34.55 million events/second** and **0.043 μs sampled p99 processing latency**. A later CI run measured roughly **30.40 million events/second** and **0.061 μs sampled p99**; both are sampled native processing metrics, not end-to-end market latency.
-
-The paired Python/C++ report checks matching tick, debouncer, and stop-limit outcomes before it reports a throughput ratio. This is the evidence to use for the GIL comparison, and it must be rerun on the target host before describing that measured ratio as an HPC result.
-
 The saved native C++ ZeroMQ report records about **56.5 μs p50 one-way latency** and **114.3 μs p50 round-trip latency** in a paced, 20K-message run. That does not meet a sub-10 μs ZeroMQ claim, and ZeroMQ is not lock-free. The process-shared SPSC benchmark measures the separate lock-free shared-memory path. Its report is the evidence for any sub-10 μs lock-free handoff claim; the result varies by host and must not be inferred from the ZeroMQ timing.
 
 A 5 bps stop-limit offset sets a price boundary; it does not promise a fill. The gap sweep deliberately includes price moves larger than the offset so this limitation is visible in the tests.
