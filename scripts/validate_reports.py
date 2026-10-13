@@ -309,6 +309,72 @@ def check_storage_sweep_if_present() -> None:
     print("PASS DuckDB batch-size sweep: 3 verified settings")
 
 
+def check_gil_comparison_if_present() -> None:
+    path = ARTIFACTS / "gil_comparison_benchmark.json"
+    if not path.exists():
+        print("SKIP paired Python/C++ pipeline benchmark (report not generated)")
+        return
+    row = load_json(path)
+    ticks = int(row["ticks_per_run"])
+    repeats = int(row["measured_repeats_per_implementation"])
+    if ticks < 1 or repeats < 1 or int(row["warmup_invocations_per_implementation"]) != 1:
+        fail("paired pipeline benchmark tick/repeat/warm-up metadata is invalid")
+    native = row["native_cpp"]
+    python = row["python_threaded"]
+    parity = row.get("semantic_parity", {})
+    if parity.get("passed") is not True:
+        fail("paired pipeline benchmark did not establish semantic parity")
+    for key, detail in parity.get("checks", {}).items():
+        if detail.get("match") is not True or detail.get("native_cpp") != detail.get("python_threaded"):
+            fail(f"paired pipeline semantic mismatch: {key}")
+    required_parity = {
+        "ticks", "warmup_ticks", "measured_ticks", "signals_accepted",
+        "signals_debounced", "stop_triggers", "stop_limit_marketable_at_gap",
+        "invalid_ticks", "queue_capacity",
+    }
+    if set(parity.get("checks", {})) != required_parity:
+        fail("paired pipeline semantic parity checks are incomplete")
+    for label, result in (("native C++", native), ("Python threaded", python)):
+        if int(result["ticks"]) != ticks:
+            fail(f"{label}: tick count does not match the requested workload")
+        if int(result["measured_runs"]) != repeats:
+            fail(f"{label}: measured repeat count does not match settings")
+        if int(result["warmup_ticks"]) != min(ticks // 10, 10_000):
+            fail(f"{label}: per-run warm-up count is inconsistent")
+        if int(result["measured_ticks"]) != ticks - int(result["warmup_ticks"]):
+            fail(f"{label}: measured tick count is inconsistent")
+        if int(result["signals_accepted"]) + int(result["signals_debounced"]) != ticks:
+            fail(f"{label}: accepted + debounced counts do not cover all ticks")
+        if int(result["stop_triggers"]) != 1 or bool(result["stop_limit_marketable_at_gap"]):
+            fail(f"{label}: injected crash stop-limit outcome is unexpected")
+        if int(result["invalid_ticks"]) != 0:
+            fail(f"{label}: generated workload contained invalid ticks")
+        if int(result["queue_capacity"]) != 65_536:
+            fail(f"{label}: queue capacity does not match the paired benchmark")
+        rates = number(result["measured_throughput_events_per_second"], f"{label} throughput")
+        if rates <= 0:
+            fail(f"{label}: throughput must be positive")
+        latencies = [number(result[f"sampled_processing_{q}_us"], f"{label} {q}")
+                     for q in ("p50", "p95", "p99")]
+        if not (0 <= latencies[0] <= latencies[1] <= latencies[2]):
+            fail(f"{label}: sampled processing latency quantiles are invalid")
+        raw = result.get("raw_measured_runs", [])
+        if len(raw) != repeats:
+            fail(f"{label}: raw measured-run records are missing")
+        if any(int(item["ticks"]) != ticks or int(item["invalid_ticks"]) != 0 for item in raw):
+            fail(f"{label}: a raw measured run failed workload checks")
+    if native.get("queue_lock_free_atomics") is not True:
+        fail("native C++ SPSC queue atomics did not report lock-free on this host")
+    if python.get("queue_lock_free_atomics") is not False:
+        fail("Python queue baseline metadata is incorrect")
+    speedup = number(row["native_cpp_speedup_over_python_threaded"], "native/Python speedup")
+    expected = number(native["measured_throughput_events_per_second"], "native throughput") / number(
+        python["measured_throughput_events_per_second"], "Python throughput")
+    if speedup <= 0 or abs(speedup - expected) > max(1e-6, expected * 1e-6):
+        fail("native/Python speedup does not match the measured throughput ratio")
+    print(f"PASS paired native/Python pipeline benchmark: semantic parity; {speedup:.2f}x throughput ratio")
+
+
 def check_svgs_and_readme() -> None:
     svg_paths = sorted(ASSETS.glob("*.svg"))
     if not svg_paths:
@@ -368,6 +434,7 @@ def main() -> int:
         check_native_zmq_if_present()
         check_shared_memory_if_present()
         check_shared_memory_sweep_if_present()
+        check_gil_comparison_if_present()
         check_storage_if_present()
         check_storage_sweep_if_present()
         check_svgs_and_readme()
