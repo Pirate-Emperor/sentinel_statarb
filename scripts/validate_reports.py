@@ -321,6 +321,11 @@ def check_gil_comparison_if_present() -> None:
         fail("paired pipeline benchmark tick/repeat/warm-up metadata is invalid")
     native = row["native_cpp"]
     python = row["python_threaded"]
+    host = row.get("host", {})
+    if host.get("python_implementation") != "cpython":
+        fail("paired comparison baseline must be CPython")
+    if host.get("python_gil_enabled") is not True:
+        fail("paired comparison must verify that the Python baseline uses an enabled GIL")
     parity = row.get("semantic_parity", {})
     if parity.get("passed") is not True:
         fail("paired pipeline benchmark did not establish semantic parity")
