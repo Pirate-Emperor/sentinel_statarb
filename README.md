@@ -131,6 +131,19 @@ See the [experiment notes](docs/EXPERIMENTS.md) and [reports and diagrams index]
 
 The checked-in JSON/CSV files and diagrams are reference runs from synthetic data. Throughput and latency change with the CPU, operating system, compiler, process scheduling, and test settings. Re-run the commands above to produce results for your machine.
 
+### Verification status (latest previously completed hosted CI reference run)
+
+| Claim area | Evidence currently established | Remaining caveat |
+|---|---|---|
+| Native C++ engine | 10M synthetic-tick run: about 30.40M events/s and 0.061 μs sampled p99 processing time in the later hosted CI reference run. | This is hot-path processing, not end-to-end market latency; HPC measurements are machine-specific. |
+| Python GIL comparison | Added a paired C++ vs CPython producer/consumer benchmark with a deterministic identical workload, warm-up, repeated measurements, and semantic-parity gates. | Do not quote a speedup until the generated report is checked; call it HPC evidence only when recorded on `integrator-1`. |
+| Dynamic debouncer + 5 bps OCO | In a 100K synthetic policy experiment, accepted signals fell from 99,427 without debouncing to 9,934 with dynamic debouncing (about 90.0% fewer). Tests cover the exact 5 bps offset, one-shot OCO behavior, and a gap-through case where the stop-limit is not marketable. | Synthetic risk-control tests are not live-market P&L or proof of actual slippage reduction. |
+| Quote integrity + IPC | Duplicate, out-of-order, stale and excessively future-dated quotes have rejection tests. A prior shared-memory SPSC run measured 3.895 μs p50 / 6.599 μs p99, with lock-free atomics reported by the host. | This is shared-memory IPC, not ZeroMQ. A separate ZeroMQ run measured about 56.9 μs p50 / 73.35 μs p99 one-way, so ZeroMQ does not meet the sub-10 μs claim. |
+| DuckDB logging | 10.1M rows written and read back, all sequences unique over 0–10,099,999, zero invalid quotes; prior hosted throughput was about 278K rows/s. | Throughput depends on host/storage; the dedicated HPC job repeats the full write/read-back test. |
+
+The dedicated [integrator-1 HPC workflow](https://github.com/SpryzenHell/integrator/blob/main/.github/workflows/sentinel-statarb-hpc.yml) records the actual host/toolchain, runs the paired benchmark and IPC tests, and verifies 10.1M DuckDB rows. Its measured report—not the mere presence of an A100—is the source for any HPC-specific claim. The project and CI changes are committed directly to `main`; the workflow artifacts and saved result reports should be checked before using updated numbers.
+
+
 The checked-in 10M C++ reference report records about **34.55 million events/second** and **0.043 μs sampled p99 processing latency**. A later CI run measured roughly **30.40 million events/second** and **0.061 μs sampled p99**; both are sampled native processing metrics, not end-to-end market latency.
 
 The paired Python/C++ report checks matching tick, debouncer, and stop-limit outcomes before it reports a throughput ratio. This is the evidence to use for the GIL comparison, and it must be rerun on the target host before describing that measured ratio as an HPC result.
