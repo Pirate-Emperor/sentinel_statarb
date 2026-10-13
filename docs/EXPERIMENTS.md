@@ -52,6 +52,24 @@ The latency values are sampled around native order/debouncer processing. They ar
 
 ![Native C++ benchmark](assets/cpp-benchmark.svg)
 
+## Paired native C++ vs CPython-threaded pipeline
+
+This benchmark directly tests whether the native pipeline outperforms a comparable Python-threaded pipeline on a given machine. It runs the same deterministic unsigned-64-bit LCG quote stream through two producer/consumer implementations:
+
+- **Native:** C++ producer, bounded SPSC ring, C++ debouncer, and stop-limit logic.
+- **Python baseline:** CPython producer thread, bounded `queue.Queue`, and the project's Python debouncer/stop-limit logic.
+
+Both use a 65,536-entry queue, identical timestamp progression and generated price path, a 100 μs base / 2 ms maximum debounce cooldown, a 5 bps stress threshold, a 25 bps stop, a 5 bps stop-limit offset, and one injected 180 bps price gap. Before reporting throughput, the script asserts parity for total ticks, accepted/debounced signals, stop count, stop-limit marketability at the gap, and invalid ticks. It discards a full warm-up invocation for each implementation, then reports medians across measured repeats and records the host and Python GIL build status.
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+python scripts/benchmark_gil_pipeline.py --ticks 1000000 --repeats 3 --out artifacts/gil_comparison_benchmark.json
+python scripts/validate_reports.py
+```
+
+Throughput includes producer/consumer pipeline wait; sampled processing latency covers only the order/debouncer work. It is synthetic same-host CPU evidence, not end-to-end market latency. A GitHub-hosted run describes that runner only; use the same script on `integrator-1` before stating a benchmark result as HPC performance.
+
 ## ZeroMQ IPC round trip
 
 The saved ZeroMQ report uses 2,000 warm-up messages followed by 20,000 measured process-to-process round trips.
