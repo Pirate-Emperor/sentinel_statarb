@@ -9,6 +9,7 @@ All examples use synthetic data. The project does not connect to a broker or pla
 ## At a glance
 
 - **Native C++ engine:** SPSC ring buffer and an event-processing benchmark. The benchmark reports whether its atomics are lock-free on the current machine.
+- **Paired GIL comparison:** Runs the same deterministic synthetic quote stream through native C++ and a CPython producer/consumer pipeline, enforces output parity, and measures the throughput ratio after warm-up. The host is recorded; an HPC claim requires a report produced on the HPC machine.
 - **Quote checks:** Reject repeated sequence numbers, out-of-order timestamps, stale quotes, and timestamps too far in the future.
 - **Dynamic debouncer:** Holds back repeated strategy signals for longer after a sharp price move. Protective order checks still run for every quote that passes the quality checks.
 - **OCO stop-limit model:** Tests stop/target behavior and a 5 bps stop-limit offset. A triggered stop-limit order can remain unfilled after a large gap.
@@ -73,6 +74,9 @@ python scripts/run_experiments.py --ticks 1000000 --repeats 3
 bash scripts/run_cpp_benchmark.sh 1000000 artifacts/cpp_benchmark.json
 bash scripts/run_cpp_benchmark.sh 10000000 artifacts/cpp_benchmark_10m.json
 
+# Paired native C++ vs CPython-threaded execution pipeline
+python scripts/benchmark_gil_pipeline.py --ticks 1000000 --repeats 3 --out artifacts/gil_comparison_benchmark.json
+
 # Python ZeroMQ process-to-process round trip
 python scripts/benchmark_zmq_ipc.py --ticks 20000 --warmup 2000 --out artifacts/zmq_ipc_benchmark.json
 
@@ -127,7 +131,9 @@ See the [experiment notes](docs/EXPERIMENTS.md) and [reports and diagrams index]
 
 The checked-in JSON/CSV files and diagrams are reference runs from synthetic data. Throughput and latency change with the CPU, operating system, compiler, process scheduling, and test settings. Re-run the commands above to produce results for your machine.
 
-The saved 10M C++ report records about **34.55 million events/second** and **0.043 μs sampled p99 processing latency** for that run. That is sampled native event-processing time, not end-to-end market latency.
+The checked-in 10M C++ reference report records about **34.55 million events/second** and **0.043 μs sampled p99 processing latency**. A later CI run measured roughly **30.40 million events/second** and **0.061 μs sampled p99**; both are sampled native processing metrics, not end-to-end market latency.
+
+The paired Python/C++ report checks matching tick, debouncer, and stop-limit outcomes before it reports a throughput ratio. This is the evidence to use for the GIL comparison, and it must be rerun on the target host before describing that measured ratio as an HPC result.
 
 The saved native C++ ZeroMQ report records about **56.5 μs p50 one-way latency** and **114.3 μs p50 round-trip latency** in a paced, 20K-message run. That does not meet a sub-10 μs ZeroMQ claim, and ZeroMQ is not lock-free. The process-shared SPSC benchmark measures the separate lock-free shared-memory path. Its report is the evidence for any sub-10 μs lock-free handoff claim; the result varies by host and must not be inferred from the ZeroMQ timing.
 
