@@ -258,7 +258,7 @@ def main() -> int:
             "generator": "identical unsigned-64-bit LCG; bounded price noise; one injected 180 bps gap",
             "queue_capacity": QUEUE_CAPACITY,
             "pipeline": "one producer thread and one consumer thread",
-            "risk_logic": "same 100 ns base/2,000 ns max-equivalent cooldown scale, 5 bps stress threshold, 25 bps stop, and 5 bps stop-limit offset",
+            "risk_logic": "same 100 µs base/2 ms maximum cooldown, 5 bps stress threshold, 25 bps stop, and 5 bps stop-limit offset",
             "scope": "same-host synthetic CPU pipeline; excludes network, broker, and real market-data latency",
         },
         "host": {
