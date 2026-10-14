@@ -29,6 +29,15 @@ class SavedArtifactTests(unittest.TestCase):
                 self.assertTrue(root.tag.endswith("svg"))
                 self.assertIsNotNone(root.get("viewBox"))
 
+    def test_post_crash_suppression_snapshot_records_all_three_policies(self) -> None:
+        path = ROOT / "docs" / "assets" / "post-crash-signal-suppression.svg"
+        root = ET.parse(path).getroot()
+        text = " ".join(root.itertext())
+        self.assertIn("First 200 sequence slots", text)
+        self.assertIn("199 / 199", text)
+        self.assertIn("20 / 199", text)
+        self.assertIn("0 / 199", text)
+
     def test_main_png_and_duplicate_project_licenses_are_absent(self) -> None:
         self.assertFalse((ROOT / "main.png").exists())
         self.assertEqual([p.name for p in ROOT.glob("LICENSE*")], ["LICENSE"])
