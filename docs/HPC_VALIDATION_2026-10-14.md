@@ -150,7 +150,6 @@ Raw paired C++ throughput repeats (events/s): 35,549,769.28; 44,568,909.25; 39,7
 
 Input details: seed `20261011`; 100,000 base ticks plus 1,030 duplicate-sequence inputs; 101,030 total events; 10,000 ns timestamp progression; crash/gap at sequence 55,000 (55% through base stream); 180 bps price drop; one warm-up and three measured repeats per policy. All policies saw 1,030 duplicate sequence events, 473 out-of-order timestamp events, 100 stale quotes, and zero future-dated events in this specific stream. Each policy triggered one protective stop; after the gap, the 5 bps-offset stop-limit was not marketable.
 
-![Crash-window entry-signal suppression](assets/post-crash-signal-suppression.svg)
 
 ### IPC follow-up
 

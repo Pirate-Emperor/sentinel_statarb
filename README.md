@@ -461,33 +461,13 @@ python scripts/validate_reports.py
 
 Database binaries are local outputs; commit the source, scripts and small JSON/CSV/SVG summaries—not the 136 MB-class DuckDB test database.
 
-## K. Artifacts and diagrams index
+## K. Figures and report index
 
-The main diagrams are all visible earlier in the README; the direct paths are:
-
-- Architecture — docs/assets/architecture.svg
-- Quote validation and risk flow — docs/assets/execution-flow.svg
-- Synthetic experiment pipeline — docs/assets/experiment-pipeline.svg
-- Quote data-quality counters — docs/assets/data-quality.svg
-- Full-stream policy performance — docs/assets/performance-comparison.svg
-- Experiment dashboard — docs/assets/experiment-dashboard.svg
-- 180 bps crash price chart — docs/assets/flash-crash-analysis.svg
-- Post-crash entry-signal suppression window — docs/assets/post-crash-signal-suppression.svg
-- OCO gap-price marketability grid — docs/assets/oco-gap-sweep.svg
-- C++ processing benchmark — docs/assets/cpp-benchmark.svg
-- Python ZeroMQ round trip — docs/assets/zmq-ipc-latency.svg
-- Native ZeroMQ one-way — docs/assets/zmq-ipc-oneway-latency.svg
-- Shared-memory SPSC latency — docs/assets/shm-spsc-ipc-latency.svg
-- SPSC capacity sweep — docs/assets/shm-spsc-capacity-sweep.svg
-- DuckDB batch sweep — docs/assets/storage-batch-sweep.svg
-- DuckDB storage performance — docs/assets/storage-benchmark.svg
-
-Reports and files:
-- Full hosted-CI artifacts: [Run #38571748960](https://github.com/SpryzenHell/sentinel_statarb/actions/runs/38571748960)
-- Full HPC report JSON/CSV and provenance: [integrator/main artifact tree](https://github.com/SpryzenHell/integrator/tree/main/artifacts/sentinel-statarb-hpc)
-- Detailed HPC metrics: docs/HPC_VALIDATION_2026-10-14.md
-- Experiment methodology/reference notes: docs/EXPERIMENTS.md
-- Figure index: docs/README.md
+- [System path and subsystem boundaries](docs/assets/architecture.svg)
+- [HPC #9 benchmark snapshot: throughput, IPC, and DuckDB](docs/assets/performance-comparison.svg)
+- [Crash-window signal gating and OCO price boundaries](docs/assets/flash-crash-analysis.svg)
+- [Detailed methods and historical reference measurements](docs/EXPERIMENTS.md)
+- [HPC host provenance and complete validation record](docs/HPC_VALIDATION_2026-10-14.md)
 
 ## L. Evidence limits and reporting guardrails
 
@@ -549,7 +529,6 @@ The exact raw throughput repeats in this run were 32,399,548, 31,741,759 and 32,
 
 The post-crash observation window reconciles correctly in both hosted CI and HPC run #9: 199 valid quotes; no debounce accepted 199; fixed debounce accepted 20 and held 179; dynamic debounce accepted zero and held all 199. All three policies triggered the protective stop once and the stop-limit was not marketable at the 180 bps gap. The 24-case 0/5/10 bps offset matrix also passed report validation.
 
-![Post-crash signal suppression measured snapshot](docs/assets/post-crash-signal-suppression.svg)
 
 ### Shared-memory SPSC latest hosted measurements
 
@@ -749,7 +728,6 @@ Measurement rules applied throughout: each script's explicit warm-up was discard
 
 The native JSON calls the executable `sentinel_cpp_simulation`. Throughput is the measured event pipeline rate. Sampled processing latency measures the hot order/debounce work only; it is not full pipeline latency, network/broker latency, or quote-to-order time.
 
-![HPC native processing benchmark](docs/assets/cpp-benchmark.svg)
 
 ### Q3. Paired native C++ vs CPython queue pipeline — complete record
 
@@ -803,7 +781,6 @@ Input generation: seed `20261011`; 100,000 base ticks and 1,030 inserted duplica
 
 Quote quality and signal gating are separate counters: all three policies saw the same 199 valid quotes in this window. Dynamic debounce admitted no new entries in this test window; this establishes deterministic model behavior only. It does not directly measure portfolio exposure, actual trades, realized losses, or profitability.
 
-![Crash-window entry-signal suppression](docs/assets/post-crash-signal-suppression.svg)
 
 ### Q5. OCO stop-limit and gap-through test
 
@@ -811,7 +788,6 @@ Baseline: long position with reference price 100, 25 bps stop and 5 bps stop-lim
 
 All three policy runs produced one protective stop trigger. The injected 180 bps gap left the 5 bps-offset stop-limit not marketable. Regression tests also verify exact price arithmetic, long/short direction, impossible offset rejection, one-shot OCO behavior, and that the protective order is evaluated even if a new strategy entry is debounced.
 
-![Stop-limit gap price grid](docs/assets/oco-gap-sweep.svg)
 
 ### Q6. Lock-free process-shared SPSC IPC
 
@@ -837,7 +813,6 @@ Capacity sweep, each with 20,000 warm-up and 200,000 measured messages:
 
 Capacity 16 delivered the lowest p50/p99 in the tested sweep; capacity 1,024 delivered highest measured throughput but much higher latency. Scheduler/cache effects cause maximum outliers; <10 μs describes the p50/p99 distribution for the configured capacity 16 run, not a guaranteed bound for every message.
 
-![Shared-memory IPC capacity sweep](docs/assets/shm-spsc-capacity-sweep.svg)
 
 ### Q7. ZeroMQ transport measurements — distinct from the SPSC queue
 
@@ -852,7 +827,6 @@ Native one-way measurement: C++ REQ/REP across `ipc://`, per-message acknowledgm
 
 ZeroMQ is not lock-free and this run does not support a sub-10 μs one-way ZeroMQ claim. The low-latency lock-free result belongs to the distinct shared-memory SPSC ring.
 
-![Native ZeroMQ one-way latency](docs/assets/zmq-ipc-oneway-latency.svg)
 
 ### Q8. DuckDB full persistence and batch performance
 
@@ -875,7 +849,6 @@ The latest HPC workflow passed the full row-count/distinct-ID/range/quote valida
 
 The latest hosted-CI batch-size sweep remains separate from HPC results. In hosted run #385783, 100K rows measured 128,163 rows/s at batch 1K, 268,602 rows/s at batch 10K and 335,932 rows/s at batch 50K, all 100,000 rows read back and zero invalid rows. A different hosted run #385772 measured 133,914 / 257,049 / 276,743 rows/s at those settings; this between-run variation is retained rather than merged.
 
-![DuckDB batch-size sweep](docs/assets/storage-batch-sweep.svg)
 
 ### Q9. Exact report and source links
 
