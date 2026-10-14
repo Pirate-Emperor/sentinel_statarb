@@ -397,8 +397,10 @@ def check_gil_comparison_if_present() -> None:
 
 def check_svgs_and_readme() -> None:
     svg_paths = sorted(ASSETS.glob("*.svg"))
-    if not svg_paths:
-        fail("no SVG assets found")
+    expected_assets = {"architecture.svg", "performance-comparison.svg", "flash-crash-analysis.svg"}
+    actual_assets = {path.name for path in svg_paths}
+    if actual_assets != expected_assets:
+        fail(f"expected exactly the three compact figures; found {sorted(actual_assets)}")
     ns = "{http://www.w3.org/2000/svg}"
     for path in svg_paths:
         try:
@@ -429,7 +431,7 @@ def check_svgs_and_readme() -> None:
     licenses = list(ROOT.glob("LICENSE*"))
     if [p.name for p in licenses] != ["LICENSE"]:
         fail("keep one project LICENSE file; separate, unused license copies should not remain")
-    print(f"PASS SVG layout and README links: {len(svg_paths)} images")
+    print(f"PASS SVG layout and README links: {len(svg_paths)} compact figures")
 
 
 def check_author() -> None:

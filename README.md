@@ -16,13 +16,11 @@ All examples use synthetic data. The project does not connect to a broker or pla
 - **ZeroMQ bridge:** Sends validated tick messages over IPC or TCP. Native C++ tests measure one-way and round-trip latency separately. ZeroMQ itself is not lock-free, and the saved run did not meet the 10 μs one-way target.
 - **Lock-free shared-memory IPC:** A native SPSC ring passes messages between two processes using shared memory. The benchmark checks whether the atomic counters are actually lock-free on the host, verifies sequence order, and measures one-way handoff time.
 - **DuckDB writer:** Uses a bounded queue and a separate writer thread. Pandas DataFrame batches reduce per-row insert overhead; read-back checks verify every sequence and quote.
-- **Repeatable experiments:** Save CSV/JSON measurements and SVG diagrams for the quote policies, crash scenario, and timing results.
+- **Repeatable experiments:** Save CSV/JSON measurements; three compact SVG figures summarize the event path, measured performance, and crash/risk behavior.
 
-## System view
+## System architecture
 
-![Sentinel StatArb architecture](docs/assets/architecture.svg)
-
-![Quote validation and risk flow](docs/assets/execution-flow.svg)
+![Sentinel StatArb event path and measured subsystems](docs/assets/architecture.svg)
 
 ## Quick start
 
@@ -92,7 +90,7 @@ python scripts/benchmark_storage.py --ticks 10100000 --batch-size 10000 --out ar
 # Compare batch sizes using 100K ticks per run
 python scripts/run_storage_batch_sweep.py --ticks 100000 --out-dir artifacts
 
-# Refresh the diagrams from the saved JSON reports
+# Regenerate the three compact HPC reference figures
 python scripts/make_artifacts.py
 python scripts/validate_reports.py
 ```
@@ -101,37 +99,13 @@ The DuckDB command writes a separate warm-up database and measured database. It 
 
 GitHub Actions runs the unit tests, native C++ queue tests, 100K quote experiments, 1M and 10M C++ processing benchmarks, native shared-memory and ZeroMQ tests, and real DuckDB write/read-back tests in the regular job. A separate 120-minute job runs the 10M-row DuckDB warm-up and measured passes so the normal 30-minute test limit cannot cancel it. A run is successful only when the report and data checks finish. See [the workflow](.github/workflows/ci.yml).
 
-## Analysis and experiment images
+## Benchmark and risk figures
 
-![Experiment pipeline](docs/assets/experiment-pipeline.svg)
+![HPC #9 performance, IPC, and storage measurements](docs/assets/performance-comparison.svg)
 
-![Quote data-quality counts](docs/assets/data-quality.svg)
+![Synthetic crash replay and stop-limit boundaries](docs/assets/flash-crash-analysis.svg)
 
-![Signal policy performance comparison](docs/assets/performance-comparison.svg)
-
-![Synthetic flash-crash scenario](docs/assets/flash-crash-analysis.svg)
-
-![Stop-limit gap sweep](docs/assets/oco-gap-sweep.svg)
-
-![Post-crash entry-signal suppression snapshot](docs/assets/post-crash-signal-suppression.svg)
-
-![Synthetic experiment dashboard](docs/assets/experiment-dashboard.svg)
-
-![Native C++ benchmark](docs/assets/cpp-benchmark.svg)
-
-![Python ZeroMQ IPC round-trip benchmark](docs/assets/zmq-ipc-latency.svg)
-
-![Native C++ ZeroMQ one-way IPC latency](docs/assets/zmq-ipc-oneway-latency.svg)
-
-![Lock-free shared-memory SPSC IPC latency](docs/assets/shm-spsc-ipc-latency.svg)
-
-![Shared-memory queue-capacity sweep](docs/assets/shm-spsc-capacity-sweep.svg)
-
-![DuckDB batch-size comparison](docs/assets/storage-batch-sweep.svg)
-
-![DuckDB full persistence benchmark](docs/assets/storage-benchmark.svg)
-
-See the [experiment notes](docs/EXPERIMENTS.md) and [reports and diagrams index](docs/README.md) for the saved results and how to reproduce them.
+The three figures are generated reproducibly by `python scripts/make_artifacts.py`. Their pinned measurements match the HPC #9 evidence summarized below; the detailed experiment ledger retains run provenance, raw repeats, settings, and limitations.
 
 ## Reading the numbers correctly
 
@@ -153,13 +127,11 @@ The checked-in JSON/CSV files and diagrams are reference runs from synthetic dat
 
 Full run-level details, raw repeats, all capacity settings, quote/risk counts, transport comparisons, source provenance, commands and diagrams are documented below and in [the HPC validation report](docs/HPC_VALIDATION_2026-10-14.md). The persisted [HPC report tree](https://github.com/SpryzenHell/integrator/tree/main/artifacts/sentinel-statarb-hpc) contains JSON/CSV and machine metadata. The A100 was used as the *host*; this was a CPU/IPC/storage workload, not a CUDA acceleration benchmark.
 
-### Resume wording supported by current evidence
+### Engineering outcomes
 
-- **Native engine / GIL comparison:** Built a native C++17 market-event simulator; on the AMD EPYC HPC node the 10M-tick run processed 38.68M events/s with 0.051 μs sampled p99 hot-path processing. A paired GIL-enabled CPython pipeline measured 168.46× lower throughput with matching signal/risk outcomes.
-- **Crash controls:** Implemented dynamic signal debouncing and 5 bps OCO stop-limit protection; a seeded 180 bps crash-gap replay showed 90.01% fewer full-stream accepted signals than no debounce and **0/199 accepted entries in the first 200 post-crash sequence slots** under dynamic debounce (199/199 with no debounce, 20/199 with fixed debounce). The gap-through stop-limit was not marketable after the gap.
-- **Quote integrity / IPC / storage:** Rejected duplicate, out-of-order, stale and future-dated quotes; benchmarked lock-free process-shared SPSC IPC at 3.546 μs p50 / 6.452 μs p99 on HPC capacity 16, and asynchronously persisted/read-validated 10.1M DuckDB rows with zero invalid quotes.
-
-Do not label the low-latency shared-memory IPC result as “lock-free ZeroMQ,” do not claim a hard per-message <10 μs upper bound from percentile measurements, and do not claim live-market profitability based on synthetic tests.
+- **Native event path:** 10M synthetic ticks at 38.68M events/s; sampled hot-path p99 0.051 μs; zero invalid ticks.
+- **Paired pipeline:** native C++ median 44.57M events/s versus CPython threaded 264.57K events/s, a measured 168.46× ratio with semantic parity.
+- **Risk, transport, and persistence:** dynamic gating accepted 0 of 199 valid entry opportunities in the first 200 post-gap slots; shared-memory SPSC measured 3.546 μs p50 / 6.452 μs p99; 10.1M DuckDB rows passed read-back validation.
 
 ## Main files
 
@@ -517,29 +489,14 @@ Reports and files:
 - Experiment methodology/reference notes: docs/EXPERIMENTS.md
 - Figure index: docs/README.md
 
-## L. Resume claims: verified wording and hard boundaries
+## L. Evidence limits and reporting guardrails
 
-**Native C++ / Python comparison (latest HPC #9):**
-
-> Built a native C++17 market-event simulator on an AMD EPYC HPC host, processing 10M synthetic ticks at 38.68M events/s with 0.051 μs sampled p99 hot-path processing; a paired GIL-enabled CPython pipeline measured 168.46× lower throughput with matching signal/risk outcomes.
-
-**Dynamic debounce / OCO (post-crash window verified on hosted CI and HPC #9):**
-
-> Implemented dynamic signal debouncing and 5 bps OCO stop-limit protection; in a seeded 180 bps crash-gap replay, dynamic debounce accepted 90.01% fewer whole-stream signals than no debounce and admitted 0 of 199 valid entry opportunities in the first 200 post-crash slots, while testing the stop-limit gap-through/no-fill case.
-
-HPC run #9 completed successfully with the same first-200-window counters; the zero-entry observation is now directly backed by both hosted CI and the named HPC-host report.
-
-**Quote integrity / IPC / storage (latest HPC #9):**
-
-> Rejected duplicate, out-of-order, stale and future-dated quotes; benchmarked lock-free process-shared SPSC IPC at 3.546 μs p50 / 6.452 μs p99 in the latest HPC capacity-16 run and asynchronously persisted 10.1M DuckDB rows with complete sequence/read-back validation and zero invalid quotes.
-
-Key rules:
-- Name the mechanism **shared-memory SPSC**, not “lock-free ZeroMQ.”
-- A 3.397 μs p50 / 6.102 μs p99 result does not promise every message is within 10 μs; retain the host/percentile qualification.
-- The 184.39× ratio compares whole native and Python pipelines; it is not a pure measurement of GIL overhead.
-- The 90.01% accepted-signal reduction and post-crash zero-entry result are simulated behavior, not realized P&L or proof of reduced live-market loss.
-- A 5 bps stop-limit offset constrains price; it does not guarantee an order fill.
-- The A100 is present on the HPC host, but the project tests are CPU/IPC/storage benchmarks, not CUDA acceleration tests.
+- The 168.46× figure compares complete C++ SPSC and CPython `queue.Queue` pipelines. It is workload-specific and is not an isolated estimate of GIL overhead.
+- The 90.01% whole-stream signal reduction and the 0/199 local-window result are synthetic entry-gating observations, not realized P&L, live exposure reduction, or proof of improved trading outcomes.
+- The low-latency IPC measurement is **shared-memory SPSC**, not ZeroMQ. ZeroMQ measurements are reported separately and do not support a lock-free or sub-10 μs characterization.
+- p50/p99 values describe observed percentiles, not hard upper bounds. A stop-limit becoming marketable is not evidence that it filled.
+- The A100 was present on the HPC host but was not used by these CPU, IPC, or storage experiments.
+- Source revision, host details, warm-up policy, raw repetitions, and artifact provenance are retained alongside each result. Failed or canceled runs and incomplete read-back checks are not treated as successful measurements.
 
 ## M. Known workflow incidents and chronology
 
@@ -551,7 +508,7 @@ Key rules:
 | Hosted crash-window development iteration | One failure, then later success | Unit tests caught a missing base-tick argument on measured repeat runs; it was fixed before later report generation passed. |
 | HPC #9 | [Dedicated follow-up run](https://github.com/SpryzenHell/integrator/actions/runs/38571496094) | **Success**; tested the crash-window schema on integrator-1, passed all validators and full storage read-back; persisted current reports under `integrator/main/artifacts/sentinel-statarb-hpc`. |
 
-The benchmark outputs are tied to source revision and machine provenance. Canceled/failed runs and incomplete storage read-back are not successful evidence. This ledger is intentionally explicit about both passing work and limitations so that resume claims can be defended in review.
+The benchmark outputs are tied to source revision and machine provenance. Canceled/failed runs and incomplete storage read-back are not successful evidence. This ledger records passing checks and limitations so the results can be reproduced and interpreted correctly.
 
 
 ## N. Hosted-CI run #38577287975 — supplemental measurements
@@ -942,4 +899,4 @@ The latest hosted-CI batch-size sweep remains separate from HPC results. In host
 | Async DuckDB persistence beyond 10M | Verified on HPC #9 | 10.1M rows written/read, all IDs unique, zero invalid quotes. |
 | Live market execution/profitability | **Not tested** | Entire experiment set uses synthetic inputs and does not connect to a broker. |
 
-The resume claims are supportable when phrased as simulations, measurements on this named HPC host, synthetic replay findings, or implementation-level IPC/storage checks. They should not claim live trading profit, guaranteed order fills, universal sub-10 μs maximum latency, or “lock-free ZeroMQ.”
+These results are supported as synthetic simulations, measurements on the named HPC host, and implementation-level IPC/storage checks. They do not establish live trading profit, guaranteed order fills, universal sub-10 μs maximum latency, or “lock-free ZeroMQ.”

@@ -6,6 +6,11 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+EXPECTED_FIGURES = {
+    "architecture.svg",
+    "performance-comparison.svg",
+    "flash-crash-analysis.svg",
+}
 
 
 class SavedArtifactTests(unittest.TestCase):
@@ -20,23 +25,30 @@ class SavedArtifactTests(unittest.TestCase):
             ))
             self.assertEqual(counted, total)
 
-    def test_all_committed_svgs_are_well_formed(self) -> None:
-        svgs = sorted((ROOT / "docs" / "assets").glob("*.svg"))
-        self.assertGreaterEqual(len(svgs), 10)
-        for path in svgs:
+    def test_exactly_three_committed_figures_are_well_formed(self) -> None:
+        paths = sorted((ROOT / "docs" / "assets").glob("*.svg"))
+        self.assertEqual({path.name for path in paths}, EXPECTED_FIGURES)
+        for path in paths:
             with self.subTest(path=path.name):
                 root = ET.parse(path).getroot()
-                self.assertTrue(root.tag.endswith("svg"))
+                self.assertEqual(root.tag, "{http://www.w3.org/2000/svg}svg")
                 self.assertIsNotNone(root.get("viewBox"))
 
-    def test_post_crash_suppression_snapshot_records_all_three_policies(self) -> None:
-        path = ROOT / "docs" / "assets" / "post-crash-signal-suppression.svg"
-        root = ET.parse(path).getroot()
-        text = " ".join(root.itertext())
-        self.assertIn("First 200 sequence slots", text)
-        self.assertIn("199 / 199", text)
-        self.assertIn("20 / 199", text)
-        self.assertIn("0 / 199", text)
+    def test_benchmark_figure_keeps_current_hpc_measurements(self) -> None:
+        path = ROOT / "docs" / "assets" / "performance-comparison.svg"
+        text = " ".join(ET.parse(path).getroot().itertext())
+        for value in ("38.68M/s", "168.46×", "3.546 / 6.452",
+                      "26.249 / 33.012", "10.10M", "136,065,024 bytes"):
+            with self.subTest(value=value):
+                self.assertIn(value, text)
+
+    def test_crash_figure_keeps_local_window_and_gap_boundaries(self) -> None:
+        path = ROOT / "docs" / "assets" / "flash-crash-analysis.svg"
+        text = " ".join(ET.parse(path).getroot().itertext())
+        for value in ("180 bps", "199 / 199", "20 / 199", "0 / 199",
+                      "90.00875%", "7.5 bps", "not marketable"):
+            with self.subTest(value=value):
+                self.assertIn(value, text)
 
     def test_main_png_and_duplicate_project_licenses_are_absent(self) -> None:
         self.assertFalse((ROOT / "main.png").exists())

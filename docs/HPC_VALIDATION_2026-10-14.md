@@ -105,11 +105,12 @@ Payload and sequence checks passed, but **ZeroMQ is not lock-free and did not me
 
 The async writer completed both the warm-up and measured pass; every requested row was present on read-back, all sequences were unique, and all bid/ask values passed validation.
 
-## Resume-bullet assessment after the HPC run
+## Measurement scope and interpretation
 
-1. **Native C++ / GIL:** verified on the named HPC host for the specific synthetic pipeline. A paired run showed 184.39× throughput versus the GIL-enabled CPython-threaded baseline with semantic parity. The 10M-tick native simulation measured 37.77M events/s and 0.051 μs sampled p99 hot-path processing.
-2. **Debouncer / OCO:** verified as synthetic backtest behavior: about 90.01% fewer accepted signals than no debouncing, with 5 bps OCO stop-limit checks and an exercised gap-through case. This does not prove improved live P&L or guaranteed fills.
-3. **Quote integrity / IPC / storage:** stale, duplicate, out-of-order, and future timestamp guards are tested. The capacity-16 shared-memory SPSC path achieved p99 6.102 μs with lock-free atomics; ZeroMQ's separate latency was above 10 μs and is not lock-free. Async DuckDB write/read-back verified 10.1M rows with zero invalid quotes.
+- The paired native/Python throughput ratio measures two complete synthetic pipelines; queue implementation, interpreter work, threading, compilation, and host scheduling all contribute.
+- Debounce counts measure simulated entry-signal gating. They do not establish realized loss, live-market profitability, exposure reduction, or fills.
+- The capacity-16 low-latency IPC figures are from the process-shared SPSC ring with lock-free atomics on this host. ZeroMQ is a separate transport and is not lock-free.
+- The DuckDB stress test checks persistence integrity by verifying row count, unique sequence identifiers, value validity, and complete read-back.
 
 ## Artifacts and reproducibility
 

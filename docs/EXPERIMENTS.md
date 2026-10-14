@@ -2,6 +2,9 @@
 
 These numbers are saved reference results from synthetic data. They help compare code changes, but they are not live-market measurements. CPU, operating system, compiler, system load, and the selected tick count affect the results. Run the commands below again to measure a new machine.
 
+![HPC #9 performance, IPC, and storage snapshot](assets/performance-comparison.svg)
+
+
 ## Python quote-policy test
 
 **Setup:** 100,000 base ticks, 101,030 input events after deliberate duplicate insertion, a 180 bps price gap at 55% of the stream, one warm-up per policy, and three measured runs. Timing columns show the median of the measured runs.
@@ -18,6 +21,9 @@ Each policy saw the same seeded input stream. The dynamic policy held back about
 
 The input stream deliberately includes **1,030 repeated sequence numbers**, **473 older timestamps**, and **100 stale quotes**. It includes no future-timestamp examples in this saved run. Each policy counted one stop trigger at the injected crash, and the 5 bps stop-limit sell price was not marketable at the observed crash price.
 
+![Synthetic crash replay and stop-limit boundaries](assets/flash-crash-analysis.svg)
+
+
 The following checks matter:
 
 - A repeated sequence, older timestamp, stale quote, or excessive future timestamp is rejected before it can create a strategy signal.
@@ -25,13 +31,9 @@ The following checks matter:
 - An OCO order is one-shot: after the stop or take-profit fires, later quotes cannot trigger the other side.
 - A 5 bps offset is a limit-price rule, not a promise that a buyer or seller will be available at that price.
 
-![Quote data-quality counts](assets/data-quality.svg)
 
-![Signal policy performance comparison](assets/performance-comparison.svg)
 
-![Stop-limit price gap sweep](assets/oco-gap-sweep.svg)
 
-![Synthetic crash scenario](assets/flash-crash-analysis.svg)
 
 ## Native C++ queue and execution simulation
 
@@ -50,7 +52,6 @@ The checked-in 10M reference report records:
 
 The latency values are sampled around native order/debouncer processing. They are **not** full market-to-order latency, network latency, or a guarantee for another machine. The queue benchmark also checks message order across producer and consumer threads.
 
-![Native C++ benchmark](assets/cpp-benchmark.svg)
 
 ## Paired native C++ vs CPython-threaded pipeline
 
@@ -86,7 +87,6 @@ The payload integrity check passed. The timing includes Python, process scheduli
 
 The current saved result does not support a sub-10 μs ZeroMQ claim. The lock-free component is the native in-process SPSC ring when the platform reports its atomics as lock-free; ZeroMQ transport is a separate path and is not described as lock-free.
 
-![ZeroMQ IPC round-trip benchmark](assets/zmq-ipc-latency.svg)
 
 ## Native C++ ZeroMQ IPC
 
@@ -104,7 +104,6 @@ python scripts/validate_reports.py
 
 The one-way chart is replaced using the measured JSON file. Treat a p50 below 10 μs as met only when that measured report shows it. The benchmark is machine-dependent and is not used to claim that the ZeroMQ transport itself is lock-free. The native SPSC ring's lock-free atomics are checked separately.
 
-![Native C++ one-way IPC latency](assets/zmq-ipc-oneway-latency.svg)
 
 The existing Python benchmark remains useful for a process-to-process request/reply path, but Python and scheduling add overhead. Its round-trip values must not be compared directly with one-way C++ latency.
 
@@ -125,7 +124,6 @@ python scripts/validate_reports.py
 
 The report checks and states whether the shared-memory atomics are lock-free on that host. It also sets `sub_10_us_p50` from the actual p50 result. Only use a sub-10 μs claim if that flag is true for the measured run; never infer it from the C++ processing benchmark or from ZeroMQ socket latency.
 
-![Lock-free shared-memory SPSC IPC latency](assets/shm-spsc-ipc-latency.svg)
 
 ## Shared-memory queue capacity sweep
 
@@ -141,7 +139,6 @@ python scripts/validate_reports.py
 
 The script saves one JSON report per capacity, plus `shm_spsc_capacity_sweep.json` and `shm_spsc_capacity_sweep.csv`. The SVG compares p50 and p99 latency with throughput. Use the smallest p50 only after checking p99, throughput, and sequence validation; do not choose a capacity from latency alone.
 
-![Shared-memory queue capacity sweep](assets/shm-spsc-capacity-sweep.svg)
 
 ## DuckDB batch-size comparison
 
@@ -153,7 +150,6 @@ python scripts/make_artifacts.py
 python scripts/validate_reports.py
 ```
 
-![DuckDB batch-size comparison](assets/storage-batch-sweep.svg)
 
 ## DuckDB storage stress test
 

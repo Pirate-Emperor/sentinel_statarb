@@ -1,384 +1,216 @@
 #!/usr/bin/env python3
-"""Generate readable SVG diagrams from the saved experiment reports."""
-import html,json,random
+"""Write the three compact, pinned SVG figures used in the project reports."""
 from pathlib import Path
-R=Path(__file__).resolve().parents[1];A=R/"docs"/"assets";A.mkdir(parents=True,exist_ok=True)
-def t(x,y,s,size=18,color="#eaf0f8",weight=400):
-    return f'<text x="{x}" y="{y}" font-family="Arial,sans-serif" font-size="{size}" font-weight="{weight}" fill="{color}">{html.escape(str(s))}</text>'
-def rect(x,y,w,h,color,stroke="#44546a",r=12):
-    return f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{r}" fill="{color}" stroke="{stroke}" stroke-width="2"/>'
-def save(name,w,h,parts):
-    (A/name).write_text(f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">\n'+"\n".join(parts)+"\n</svg>\n")
-def architecture():
-    s=['<rect width="1200" height="600" fill="#0b1220"/>',t(45,55,"SENTINEL STATARB / SYSTEM MAP",16,"#72d9be",700),t(45,100,"Quotes in, checked decisions out",30,"#f4f7fb",700)]
-    cards=[(45,"INPUT","#18334a",["Quotes + sequence","Freshness checks"]),(335,"RISK + SIGNAL","#193b35",["Adaptive debounce","OCO stop / target"]),(625,"ZERO MQ","#302646",["Validated JSON","IPC or TCP socket"]),(915,"NATIVE C++","#4a2d20",["SPSC ring","Measured queue speed"])]
-    for x,name,c,lines in cards:
-        s += [rect(x,155,235,140,c),t(x+16,188,name,16,"#78dcca",700),t(x+16,230,lines[0],17),t(x+16,260,lines[1],17)]
-    for x in [282,572,862]:s.append(f'<path d="M{x} 225 h42 l-9 -8 m9 8 l-9 8" stroke="#91a5bd" stroke-width="3" fill="none"/>')
-    s += [rect(45,355,530,150,"#151f30"),t(70,397,"ASYNC STORAGE",16,"#72d9be",700),t(70,435,"DuckDB batches + bounded queue",22),t(70,470,"Back-pressure protects records from silent loss.",16),rect(610,355,535,150,"#151f30"),t(635,397,"TESTS + REPORTS",16,"#ffb36c",700),t(635,435,"Python checks · C++ queue test · OCO gap grid",19),t(635,470,"Saved results: CSV, JSON and SVG.",16),t(45,560,"ZeroMQ IPC and the in-process queue are different paths; their timings are not the same.",15,"#f6c778")]
-    save("architecture.svg",1200,600,s)
-def flow():
-    s=['<rect width="1200" height="560" fill="#f4f0e7"/>',t(45,55,"QUOTE HANDLING / EXECUTION TRACE",16,"#17685c",700),t(45,98,"Protective checks do not wait for the signal gate",29,"#1b2d33",700)]
-    cards=[(45,"1  RECEIVE",["One quote","Bid / ask / sequence"]),(340,"2  VALIDATE",["Check time","Reject repeats"]),(635,"3  CHECK RISK",["Stop + target","Every valid quote"]),(930,"4  SIGNAL",["Pass or debounce","Strategy signal"])]
-    for x,title,lines in cards:
-        s += [rect(x,155,225,120,"#ffffff","#247d75"),t(x+14,190,title,16,"#247d75",700),t(x+14,228,lines[0],17,"#23323a"),t(x+14,255,lines[1],17,"#23323a")]
-    for x in [275,570,865]:s.append(f'<path d="M{x+3} 215 h48 l-10 -8 m10 8 l-10 8" stroke="#506a73" stroke-width="3" fill="none"/>')
-    s += [rect(100,330,430,120,"#e4f5ed","#26836d"),t(125,370,"PROTECTIVE ORDER",16,"#17685c",700),t(125,408,"Stop trigger sets a limit; it does not promise a fill.",16,"#23323a"),rect(670,330,430,120,"#e7e4f8","#6f5cb5"),t(695,370,"SIGNAL + STORAGE",16,"#5f4a9c",700),t(695,408,"Signals are gated; valid ticks are batched.",16,"#23323a"),t(45,510,"A large gap can pass the stop-limit price and leave the order unfilled.",16,"#9f4d12",700)]
-    save("execution-flow.svg",1200,560,s)
-def dashboard(d):
-    colors=["#64c8e6","#b39cf4","#68dca7"];pol=d["policies"];mx=max(float(p["events_per_second"]) for p in pol) or 1
-    s=['<rect width="1200" height="580" fill="#101827"/>',t(40,50,"SYNTHETIC QUOTE EXPERIMENT",16,"#72d9be",700),t(40,93,f"{d['base_tick_count']:,} ticks | {d['measured_repeats_per_policy']} measured runs after warm-up",24,"#f3f6fb",700),t(40,124,"Machine-specific results; not live-market performance.",16,"#aab8ce")]
-    for p,y,c in zip(pol,[155,270,385],colors):
-        s += [rect(40,y,1120,92,"#1a2638"),t(62,y+30,p["policy"].upper(),16,c,700),t(62,y+65,f"{p['events_per_second']:,.0f} events/s",21),rect(335,y+22,360,23,"#2b384d","#2b384d",6),rect(335,y+22,360*float(p["events_per_second"])/mx,23,c,c,6),t(335,y+65,f"{p['accepted_signals']:,} accepted  |  {p['debounced_signals']:,} held",15),t(790,y+38,f"P95 {p['sampled_latency_p95_us']:.3f} us",17),t(790,y+66,f"repeat {p['duplicate_sequences']}  ·  old time {p['out_of_order_timestamps']}  ·  stale {p['stale_quotes']}",13,"#aab8ce")]
-    s += [rect(40,510,1120,45,"#242b35","#4e5d70",8),t(60,538,"One stop triggered per policy; the 180 bps gap exceeded the 5 bps limit offset.",15,"#ffbc78",700)]
-    save("experiment-dashboard.svg",1200,580,s)
-def charts(d):
-    # Build the plotted path from the same seeded synthetic stream used by experiments.py.
-    count=int(d["base_tick_count"]);crash_at=max(1,int(count*float(d["crash_at_fraction"])))
-    rng=random.Random(int(d["seed"]));stride=max(1,count//180);points=[]
-    for i in range(count):
-        regime=98.2 if i>=crash_at else 100.0
-        price=regime*(1.0+rng.uniform(-0.000025,0.000025))
-        if i%stride==0 or i in (crash_at-1,crash_at,count-1):points.append((i,price))
-    x0,x1,y0,y1=82.0,1110.0,170.0,385.0
-    low,high=97.8,100.4
-    def px(i):return x0+(x1-x0)*i/max(1,count-1)
-    def py(price):return y1-(price-low)/(high-low)*(y1-y0)
-    trace=" ".join(("M" if index==0 else "L")+f"{px(i):.2f},{py(price):.2f}" for index,(i,price) in enumerate(points))
-    s=['<rect width="1200" height="520" fill="#101827"/>',
-        t(40,45,"FLASH-CRASH REPLAY / SEEDED SYNTHETIC PRICES",16,"#72d9be",700),
-        t(40,84,"The 180 bps gap moves through the stop-limit price",27,"#f4f7fb",700),
-        t(40,116,f"{count:,} base ticks · price step at {100*float(d['crash_at_fraction']):.0f}% of the stream",15,"#aab8ce")]
-    for tick in (100.0,99.0,98.0):
-        y=py(tick)
-        s += [f'<path d="M{x0} {y:.2f} H{x1}" stroke="#263348" stroke-width="1"/>',
-              t(24,y+5,f"{tick:.0f}",13,"#aab8ce")]
-    stop=100.0*(1.0-25.0/10000.0);limit=stop*(1.0-5.0/10000.0)
-    s += [f'<path d="M{x0} {py(stop):.2f} H{x1}" stroke="#ffbd78" stroke-width="2" stroke-dasharray="10 7"/>',
-          f'<path d="M{x0} {py(limit):.2f} H{x1}" stroke="#f28f7d" stroke-width="2" stroke-dasharray="4 5"/>',
-          f'<path d="{trace}" fill="none" stroke="#64c8e6" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>',
-          t(x0,415,"START",13,"#aab8ce"),t(px(crash_at),415,"GAP",13,"#f28f7d",700),
-          t(x1-35,415,"END",13,"#aab8ce"),
-          rect(80,440,235,42,"#222f40","#40536c",7),
-          t(96,467,f"STOP  {stop:.2f}",14,"#ffbd78",700),
-          rect(332,440,285,42,"#222f40","#40536c",7),
-          t(348,467,f"SELL LIMIT  {limit:.4f}",14,"#f28f7d",700),
-          rect(634,440,500,42,"#222f40","#40536c",7),
-          t(650,467,"Observed price after gap: 98.20 · not marketable",14,"#f3f6fb",700),
-          t(40,505,"Synthetic replay only; it shows why a stop trigger cannot guarantee a fill.",14,"#c8d2e1")]
-    save("flash-crash-analysis.svg",1200,520,s)
-    rows=d["oco_gap_sweep"];gaps=sorted({float(q["gap_bps"]) for q in rows});offs=sorted({float(q["offset_bps"]) for q in rows})
-    lookup={(float(q["offset_bps"]),float(q["gap_bps"])):bool(q["marketable"]) for q in rows}
-    s=['<rect width="1200" height="480" fill="#f2f5f8"/>',
-       t(40,50,"OCO STOP-LIMIT / GAP SWEEP",16,"#177362",700),
-       t(40,90,"Can the limit trade after a gap?",28,"#172c34",700),
-       t(40,124,"YES means marketable in this price check; it does not guarantee an execution.",15,"#52656d")]
-    x0,y0,cw,ch=220,165,110,60
-    for j,g in enumerate(gaps):s.append(t(x0+j*cw+cw/2,151,f"{g:g}",14,"#52656d",700))
-    for i,o in enumerate(offs):
-        y=y0+i*ch;s.append(t(50,y+34,f"Offset {o:g} bps",16,"#172c34",700))
-        for j,g in enumerate(gaps):
-            ok=lookup[(o,g)]
-            s += [rect(x0+j*cw,y,cw-5,ch-5,"#bfead9" if ok else "#f7d8ce","#2e9b78" if ok else "#d5806d",6),
-                  t(x0+j*cw+35,y+34,"YES" if ok else "NO",14,"#194a40" if ok else "#8e3e32",700)]
-    save("oco-gap-sweep.svg",1200,480,s)
 
-def latency(name,report,kind):
-    d=json.loads(report.read_text())
-    if kind=="zmq":
-        values=[("P50",float(d["p50_round_trip_us"])),("P95",float(d["p95_round_trip_us"])),("P99",float(d["p99_round_trip_us"]))]
-        title="ZERO MQ IPC / PROCESS-TO-PROCESS ROUND TRIP";sub=f"{d['measured_messages']:,} measured messages after {d['warmup_messages']:,} warm-up messages"
-    else:
-        values=[("P50",float(d["sampled_processing_p50_us"])),("P95",float(d["sampled_processing_p95_us"])),("P99",float(d["sampled_processing_p99_us"]))]
-        title=f"NATIVE C++ / {int(d.get('ticks', d.get('measured_ticks', 0))):,} TICK RUN";sub=f"{int(d['measured_ticks']):,} measured ticks after {int(d.get('warmup_ticks', 0)):,} warm-up · {float(d['measured_throughput_events_per_second']):,.0f} events/s"
-    cols=["#5a9bd8","#df9c47","#ca6a66"];mx=max(v for _,v in values) or 1
-    s=['<rect width="1100" height="430" fill="#101827"/>',t(40,50,title,15,"#72d9be",700),t(40,91,sub,21,"#f3f6fb",700)]
-    for i,((label,v),c) in enumerate(zip(values,cols)):
-        y=145+i*75;s += [t(48,y+27,label,16,c,700),rect(160,y,700*v/mx,40,c,c,7),t(175+700*v/mx,y+27,f"{v:.3f} us",17,"#f3f6fb",700)]
-    note="Round trip includes Python and scheduler time; not one-way latency." if kind=="zmq" else "Processing latency is sampled; timings depend on the machine."
-    s += [rect(40,375,1020,35,"#202c3d","#40536c",8),t(60,399,note,15,"#c8d2e1")]
-    save(name,1100,430,s)
-def data_quality(d):
-    p=next(row for row in d["policies"] if row["policy"]=="dynamic debounce")
-    total=int(p["input_events"])
-    valid=int(p["accepted_signals"])+int(p["debounced_signals"])
-    rejected=total-valid
-    passed_w=1070*valid/total if total else 0
-    counts=[
-        ("Duplicate sequence",int(p["duplicate_sequences"]),"#d97b68"),
-        ("Old timestamp",int(p["out_of_order_timestamps"]),"#dfaa4a"),
-        ("Stale quote",int(p["stale_quotes"]),"#9b87d8"),
-        ("Future quote",int(p["future_quotes"]),"#62b6d7"),
-    ]
-    parts=['<rect width="1200" height="640" fill="#f3f6f8"/>',
-        t(40,48,"DATA QUALITY / REJECTED QUOTE COUNTS",16,"#17685c",700),
-        t(40,88,"Every event is accounted for before signal control",28,"#1b2d33",700),
-        rect(40,118,1120,168,"#ffffff","#d6e0e5"),
-        t(64,157,"INPUT STREAM",15,"#17685c",700),
-        t(64,188,f"{total:,} events",25,"#1b2d33",700),
-        rect(64,205,1070,28,"#e7edf1","#e7edf1",6),
-        rect(64,205,passed_w,28,"#4aa889","#4aa889",6),
-        t(64,257,f"Passed quote checks: {valid:,} ({100*valid/total:.2f}%)",16,"#17685c",700),
-        t(650,257,f"Rejected before signal: {rejected:,} ({100*rejected/total:.2f}%)",16,"#a24f41",700)]
-    for i,(label,count,color) in enumerate(counts):
-        x=40+i*280
-        parts += [rect(x,306,250,96,"#ffffff","#d6e0e5"),
-            t(x+16,339,label,14,color,700),
-            t(x+16,378,f"{count:,}",27,"#1b2d33",700)]
-    accepted=int(p["accepted_signals"]);held=int(p["debounced_signals"])
-    accepted_w=1070*accepted/valid if valid else 0
-    parts += [rect(40,424,1120,174,"#ffffff","#d6e0e5"),
-        t(64,463,"SIGNAL DEBOUNCER / VALID QUOTES ONLY",15,"#5f4a9c",700),
-        t(64,494,f"{valid:,} valid quotes",19,"#1b2d33",700),
-        rect(64,512,1070,30,"#ebe8f8","#ebe8f8",6),
-        rect(64,512,accepted_w,30,"#4aa889","#4aa889",6),
-        t(64,568,f"Accepted: {accepted:,} ({100*accepted/valid:.2f}%)",16,"#17685c",700),
-        t(590,568,f"Held back: {held:,} ({100*held/valid:.2f}%)",16,"#5f4a9c",700),
-        t(40,624,"The risk check still runs on every quote that passes quote-quality validation.",15,"#52656d")]
-    save("data-quality.svg",1200,640,parts)
+ROOT = Path(__file__).resolve().parents[1]
+OUT = ROOT / "docs" / "assets"
+OUT.mkdir(parents=True, exist_ok=True)
 
-def performance_comparison(d):
-    rows=d["policies"]
-    colors=["#3988a8","#8c79c8","#399b7d"]
-    max_rate=max(float(row["events_per_second"]) for row in rows) or 1
-    parts=['<rect width="1200" height="560" fill="#101827"/>',
-        t(40,48,"PERFORMANCE / POLICY COMPARISON",16,"#72d9be",700),
-        t(40,89,"Throughput and sampled processing latency",28,"#f3f6fb",700),
-        t(40,121,"Throughput includes synthetic input generation; latency is sampled around engine.process().",15,"#aab8ce")]
-    for row,y,color in zip(rows,[177,292,407],colors):
-        rate=float(row["events_per_second"])
-        p95=float(row["sampled_latency_p95_us"])
-        p99=float(row["sampled_latency_p99_us"])
-        parts += [rect(40,y-32,1120,94,"#1a2638"),
-            t(62,y-3,row["policy"].upper(),16,color,700),
-            rect(285,y-19,450,22,"#2b384d","#2b384d",5),
-            rect(285,y-19,450*rate/max_rate,22,color,color,5),
-            t(285,y+29,f"{rate:,.0f} events/s",16,"#f3f6fb",700),
-            t(790,y-2,f"P95 {p95:.3f} us",16,"#f3f6fb",700),
-            t(985,y-2,f"P99 {p99:.3f} us",16,"#c8d2e1",700),
-            t(790,y+29,f"{int(row['accepted_signals']):,} accepted · {int(row['debounced_signals']):,} held",13,"#aab8ce")]
-    parts += [t(40,526,"Machine-specific synthetic test; use the same machine and settings for comparisons.",15,"#aab8ce")]
-    save("performance-comparison.svg",1200,560,parts)
+FIGURES = {
+    "architecture.svg": r'''<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="440" viewBox="0 0 1280 440"><defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L6,3.5 L0,7 Z" fill="#8291a2"/></marker></defs>
+<rect x="0" y="0" width="1280" height="440" rx="0" fill="#ffffff" stroke="#ffffff" stroke-width="0"/>
+<rect x="0" y="0" width="1280" height="1" rx="0" fill="#ffffff" stroke="#ffffff" stroke-width="0"/>
+<text x="40" y="30" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="700" fill="#275dad" text-anchor="start">SENTINEL STATARB / 01</text>
+<text x="40" y="62" font-family="Inter,Arial,sans-serif" font-size="27" font-weight="700" fill="#172536" text-anchor="start">Event path &amp; subsystem boundaries</text>
+<text x="40" y="86" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="400" fill="#607184" text-anchor="start">Synthetic quote replay · deterministic tests · no broker connectivity</text>
+<line x1="40" y1="101" x2="1240" y2="101" stroke="#d7e0e8" stroke-width="1"/>
+<rect x="40" y="125" width="170" height="92" rx="4" fill="#f7f9fb" stroke="#d7e0e8" stroke-width="1"/>
+<line x1="41" y1="128" x2="209" y2="128" stroke="#8a98a8" stroke-width="3"/>
+<text x="54" y="154" font-family="Inter,Arial,sans-serif" font-size="16" font-weight="700" fill="#172536" text-anchor="start">Quote stream</text>
+<text x="54" y="176" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">sequence · bid/ask</text>
+<text x="54" y="195" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">event timestamp</text>
+<rect x="245" y="125" width="205" height="92" rx="4" fill="#f7f9fb" stroke="#d7e0e8" stroke-width="1"/>
+<line x1="246" y1="128" x2="449" y2="128" stroke="#275dad" stroke-width="3"/>
+<text x="259" y="154" font-family="Inter,Arial,sans-serif" font-size="16" font-weight="700" fill="#172536" text-anchor="start">Integrity gate</text>
+<text x="259" y="176" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">sequence strictly advances</text>
+<text x="259" y="195" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">time order + freshness</text>
+<rect x="485" y="125" width="190" height="92" rx="4" fill="#f7f9fb" stroke="#d7e0e8" stroke-width="1"/>
+<line x1="486" y1="128" x2="674" y2="128" stroke="#275dad" stroke-width="3"/>
+<text x="499" y="154" font-family="Inter,Arial,sans-serif" font-size="16" font-weight="700" fill="#172536" text-anchor="start">Event engine</text>
+<text x="499" y="176" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">bounded queue</text>
+<text x="499" y="195" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">C++ SPSC / Python queue</text>
+<rect x="735" y="110" width="215" height="92" rx="4" fill="#f7f9fb" stroke="#d7e0e8" stroke-width="1"/>
+<line x1="736" y1="113" x2="949" y2="113" stroke="#087e78" stroke-width="3"/>
+<text x="749" y="139" font-family="Inter,Arial,sans-serif" font-size="16" font-weight="700" fill="#172536" text-anchor="start">Signal path</text>
+<text x="749" y="161" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">adaptive debounce</text>
+<text x="749" y="180" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">entry signals only</text>
+<rect x="735" y="225" width="215" height="92" rx="4" fill="#f7f9fb" stroke="#d7e0e8" stroke-width="1"/>
+<line x1="736" y1="228" x2="949" y2="228" stroke="#c45b25" stroke-width="3"/>
+<text x="749" y="254" font-family="Inter,Arial,sans-serif" font-size="16" font-weight="700" fill="#172536" text-anchor="start">Risk path</text>
+<text x="749" y="276" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">OCO stop / target</text>
+<text x="749" y="295" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">checked on valid quotes</text>
+<rect x="1010" y="110" width="230" height="92" rx="4" fill="#f7f9fb" stroke="#d7e0e8" stroke-width="1"/>
+<line x1="1011" y1="113" x2="1239" y2="113" stroke="#087e78" stroke-width="3"/>
+<text x="1024" y="139" font-family="Inter,Arial,sans-serif" font-size="16" font-weight="700" fill="#172536" text-anchor="start">Strategy output</text>
+<text x="1024" y="161" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">emit / suppress entry</text>
+<rect x="1010" y="225" width="230" height="92" rx="4" fill="#f7f9fb" stroke="#d7e0e8" stroke-width="1"/>
+<line x1="1011" y1="228" x2="1239" y2="228" stroke="#c45b25" stroke-width="3"/>
+<text x="1024" y="254" font-family="Inter,Arial,sans-serif" font-size="16" font-weight="700" fill="#172536" text-anchor="start">Protective action</text>
+<text x="1024" y="276" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">one-shot stop or target</text>
+<line x1="210" y1="171" x2="245" y2="171" stroke="#8291a2" stroke-width="1" marker-end="url(#arrow)"/>
+<line x1="450" y1="171" x2="485" y2="171" stroke="#8291a2" stroke-width="1" marker-end="url(#arrow)"/>
+<line x1="675" y1="171" x2="705" y2="171" stroke="#d7e0e8" stroke-width="1"/>
+<line x1="705" y1="156" x2="705" y2="271" stroke="#d7e0e8" stroke-width="1"/>
+<line x1="705" y1="156" x2="735" y2="156" stroke="#8291a2" stroke-width="1" marker-end="url(#arrow)"/>
+<line x1="705" y1="271" x2="735" y2="271" stroke="#8291a2" stroke-width="1" marker-end="url(#arrow)"/>
+<line x1="950" y1="156" x2="1010" y2="156" stroke="#8291a2" stroke-width="1" marker-end="url(#arrow)"/>
+<line x1="950" y1="271" x2="1010" y2="271" stroke="#8291a2" stroke-width="1" marker-end="url(#arrow)"/>
+<line x1="40" y1="344" x2="1240" y2="344" stroke="#d7e0e8" stroke-width="1"/>
+<text x="40" y="365" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="700" fill="#607184" text-anchor="start">SEPARATELY MEASURED SUBSYSTEMS</text>
+<text x="40" y="394" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="700" fill="#172536" text-anchor="start">SHARED-MEMORY SPSC</text>
+<text x="40" y="416" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="400" fill="#607184" text-anchor="start">lock-free atomics verified on host</text>
+<text x="445" y="394" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="700" fill="#172536" text-anchor="start">ZEROMQ</text>
+<text x="445" y="416" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="400" fill="#607184" text-anchor="start">IPC/TCP transport · not lock-free</text>
+<text x="850" y="394" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="700" fill="#172536" text-anchor="start">DUCKDB WRITER</text>
+<text x="850" y="416" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="400" fill="#607184" text-anchor="start">async batches · complete read-back check</text>
+</svg>''',
+    "performance-comparison.svg": r'''<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="750" viewBox="0 0 1280 750"><defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L6,3.5 L0,7 Z" fill="#8291a2"/></marker></defs>
+<rect x="0" y="0" width="1280" height="750" rx="0" fill="#ffffff" stroke="#ffffff" stroke-width="0"/>
+<rect x="0" y="0" width="1280" height="1" rx="0" fill="#ffffff" stroke="#ffffff" stroke-width="0"/>
+<text x="40" y="30" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="700" fill="#275dad" text-anchor="start">SENTINEL STATARB / 02 · HPC RUN #9</text>
+<text x="40" y="62" font-family="Inter,Arial,sans-serif" font-size="27" font-weight="700" fill="#172536" text-anchor="start">Benchmark snapshot</text>
+<text x="40" y="86" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="400" fill="#607184" text-anchor="start">14 Oct 2026 · source bd7f72c · synthetic workloads · CPU/IPC/storage (A100 unused)</text>
+<line x1="40" y1="101" x2="1240" y2="101" stroke="#d7e0e8" stroke-width="1"/>
+<rect x="32" y="119" width="600" height="218" rx="5" fill="#ffffff" stroke="#d7e0e8" stroke-width="1"/>
+<text x="54" y="149" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#607184" text-anchor="start">NATIVE C++17 / EVENT THROUGHPUT</text>
+<text x="54" y="184" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="600" fill="#172536" text-anchor="start">1M ticks</text>
+<rect x="170" y="165" width="295" height="20" rx="2" fill="#f7f9fb" stroke="#f7f9fb" stroke-width="0"/>
+<rect x="170" y="165" width="279" height="20" rx="2" fill="#275dad" stroke="#275dad" stroke-width="0"/>
+<text x="477" y="181" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="700" fill="#172536" text-anchor="start">42.62M/s</text>
+<text x="54" y="224" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="600" fill="#172536" text-anchor="start">10M ticks</text>
+<rect x="170" y="205" width="295" height="20" rx="2" fill="#f7f9fb" stroke="#f7f9fb" stroke-width="0"/>
+<rect x="170" y="205" width="253" height="20" rx="2" fill="#275dad" stroke="#275dad" stroke-width="0"/>
+<text x="477" y="221" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="700" fill="#172536" text-anchor="start">38.68M/s</text>
+<line x1="54" y1="244" x2="610" y2="244" stroke="#d7e0e8" stroke-width="1"/>
+<text x="54" y="270" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">Sampled hot-path p99</text>
+<text x="234" y="270" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="700" fill="#172536" text-anchor="start">0.051 μs</text>
+<text x="350" y="270" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">Invalid ticks</text>
+<text x="449" y="270" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="700" fill="#087e78" text-anchor="start">0</text>
+<text x="54" y="304" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="400" fill="#607184" text-anchor="start">10M run: 9.99M measured after 10K warm-up</text>
+<rect x="650" y="119" width="598" height="218" rx="5" fill="#ffffff" stroke="#d7e0e8" stroke-width="1"/>
+<text x="672" y="149" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="700" fill="#607184" text-anchor="start">PAIRED 1M-TICK PIPELINE · 5 MEASURED RUNS / IMPLEMENTATION</text>
+<text x="672" y="184" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="600" fill="#172536" text-anchor="start">C++ SPSC</text>
+<rect x="810" y="165" width="178" height="20" rx="2" fill="#f7f9fb" stroke="#f7f9fb" stroke-width="0"/>
+<rect x="810" y="165" width="159" height="20" rx="2" fill="#275dad" stroke="#275dad" stroke-width="0"/>
+<text x="998" y="181" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="700" fill="#172536" text-anchor="start">44.57M/s</text>
+<text x="672" y="224" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="600" fill="#172536" text-anchor="start">CPython queue</text>
+<rect x="810" y="205" width="178" height="20" rx="2" fill="#f7f9fb" stroke="#f7f9fb" stroke-width="0"/>
+<rect x="810" y="205" width="4" height="20" rx="2" fill="#087e78" stroke="#087e78" stroke-width="0"/>
+<text x="998" y="221" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="700" fill="#172536" text-anchor="start">264.57K/s</text>
+<text x="1130" y="215" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="700" fill="#087e78" text-anchor="start">168.46×</text>
+<line x1="672" y1="244" x2="1226" y2="244" stroke="#d7e0e8" stroke-width="1"/>
+<text x="672" y="270" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">Exact semantic parity</text>
+<text x="833" y="270" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="700" fill="#087e78" text-anchor="start">PASS</text>
+<text x="672" y="304" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="400" fill="#607184" text-anchor="start">Whole-pipeline ratio; not isolated GIL overhead</text>
+<rect x="32" y="354" width="600" height="303" rx="5" fill="#ffffff" stroke="#d7e0e8" stroke-width="1"/>
+<text x="54" y="384" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#607184" text-anchor="start">INTERPROCESS LATENCY · μs</text>
+<circle cx="400" cy="380" r="4" fill="#275dad"/>
+<text x="410" y="384" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="400" fill="#607184" text-anchor="start">p50</text>
+<line x1="458" y1="374" x2="458" y2="386" stroke="#c45b25" stroke-width="2"/>
+<text x="468" y="384" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="400" fill="#607184" text-anchor="start">p99</text>
+<line x1="198" y1="411" x2="198" y2="558" stroke="#d7e0e8" stroke-width="1"/>
+<text x="198" y="579" font-family="Inter,Arial,sans-serif" font-size="10" font-weight="400" fill="#607184" text-anchor="middle">0</text>
+<line x1="272" y1="411" x2="272" y2="558" stroke="#d7e0e8" stroke-width="1"/>
+<text x="272" y="579" font-family="Inter,Arial,sans-serif" font-size="10" font-weight="400" fill="#607184" text-anchor="middle">20</text>
+<line x1="346" y1="411" x2="346" y2="558" stroke="#d7e0e8" stroke-width="1"/>
+<text x="346" y="579" font-family="Inter,Arial,sans-serif" font-size="10" font-weight="400" fill="#607184" text-anchor="middle">40</text>
+<line x1="420" y1="411" x2="420" y2="558" stroke="#d7e0e8" stroke-width="1"/>
+<text x="420" y="579" font-family="Inter,Arial,sans-serif" font-size="10" font-weight="400" fill="#607184" text-anchor="middle">60</text>
+<text x="54" y="445" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="600" fill="#172536" text-anchor="start">Shared-memory SPSC · one-way</text>
+<line x1="198" y1="441" x2="457" y2="441" stroke="#f7f9fb" stroke-width="3"/>
+<line x1="211.1202" y1="441" x2="221.8724" y2="441" stroke="#087e78" stroke-width="3"/>
+<circle cx="211.1202" cy="441" r="4" fill="#087e78"/>
+<line x1="221.8724" y1="434" x2="221.8724" y2="448" stroke="#c45b25" stroke-width="2"/>
+<text x="465" y="445" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="700" fill="#172536" text-anchor="start">3.546 / 6.452</text>
+<text x="54" y="490" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="600" fill="#172536" text-anchor="start">ZeroMQ C++ · one-way</text>
+<line x1="198" y1="486" x2="457" y2="486" stroke="#f7f9fb" stroke-width="3"/>
+<line x1="295.1213" y1="486" x2="320.1444" y2="486" stroke="#275dad" stroke-width="3"/>
+<circle cx="295.1213" cy="486" r="4" fill="#275dad"/>
+<line x1="320.1444" y1="479" x2="320.1444" y2="493" stroke="#c45b25" stroke-width="2"/>
+<text x="465" y="490" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="700" fill="#172536" text-anchor="start">26.249 / 33.012</text>
+<text x="54" y="535" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="600" fill="#172536" text-anchor="start">ZeroMQ C++ · request/reply</text>
+<line x1="198" y1="531" x2="457" y2="531" stroke="#f7f9fb" stroke-width="3"/>
+<line x1="391.2473" y1="531" x2="427.7626" y2="531" stroke="#c45b25" stroke-width="3"/>
+<circle cx="391.2473" cy="531" r="4" fill="#c45b25"/>
+<line x1="427.7626" y1="524" x2="427.7626" y2="538" stroke="#c45b25" stroke-width="2"/>
+<text x="465" y="535" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="700" fill="#172536" text-anchor="start">52.229 / 62.098</text>
+<text x="54" y="618" font-family="Inter,Arial,sans-serif" font-size="10" font-weight="400" fill="#607184" text-anchor="start">p50 / p99 · percentiles are observations, not latency bounds</text>
+<rect x="650" y="354" width="598" height="303" rx="5" fill="#ffffff" stroke="#d7e0e8" stroke-width="1"/>
+<text x="672" y="384" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#607184" text-anchor="start">DUCKDB · FULL WRITE + READ-BACK</text>
+<text x="672" y="430" font-family="Inter,Arial,sans-serif" font-size="30" font-weight="700" fill="#172536" text-anchor="start">10.10M</text>
+<text x="672" y="452" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">rows verified</text>
+<text x="855" y="430" font-family="Inter,Arial,sans-serif" font-size="25" font-weight="700" fill="#275dad" text-anchor="start">241.7K/s</text>
+<text x="855" y="452" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">measured throughput</text>
+<text x="1074" y="430" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#172536" text-anchor="start">41.787 s</text>
+<text x="1074" y="452" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">elapsed</text>
+<line x1="672" y1="472" x2="1226" y2="472" stroke="#d7e0e8" stroke-width="1"/>
+<text x="672" y="500" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">Requested / written / read back</text>
+<text x="995" y="500" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#172536" text-anchor="start">10.1M / 10.1M / 10.1M</text>
+<text x="672" y="532" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">Unique sequence IDs</text>
+<text x="995" y="532" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#172536" text-anchor="start">10,100,000</text>
+<text x="672" y="564" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">Invalid bid/ask rows</text>
+<text x="995" y="564" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#087e78" text-anchor="start">0</text>
+<text x="672" y="596" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="400" fill="#607184" text-anchor="start">Database size</text>
+<text x="995" y="596" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#172536" text-anchor="start">136,065,024 bytes</text>
+<line x1="40" y1="688" x2="1240" y2="688" stroke="#d7e0e8" stroke-width="1"/>
+<text x="40" y="713" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="400" fill="#607184" text-anchor="start">Host: 2× AMD EPYC 7742 · Ubuntu 22.04.4 · GCC 11.4 · CPU workload</text>
+<text x="40" y="733" font-family="Inter,Arial,sans-serif" font-size="10" font-weight="400" fill="#607184" text-anchor="start">Native p99 is sampled hot-path time, not end-to-end order latency; one-way IPC and RTT are different measurements.</text>
+</svg>''',
+    "flash-crash-analysis.svg": r'''<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="560" viewBox="0 0 1280 560"><defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L6,3.5 L0,7 Z" fill="#8291a2"/></marker></defs>
+<rect x="0" y="0" width="1280" height="560" rx="0" fill="#ffffff" stroke="#ffffff" stroke-width="0"/>
+<rect x="0" y="0" width="1280" height="1" rx="0" fill="#ffffff" stroke="#ffffff" stroke-width="0"/>
+<text x="40" y="30" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="700" fill="#275dad" text-anchor="start">SENTINEL STATARB / 03 · SEEDED REPLAY</text>
+<text x="40" y="62" font-family="Inter,Arial,sans-serif" font-size="27" font-weight="700" fill="#172536" text-anchor="start">Crash gating &amp; stop-limit boundary</text>
+<text x="40" y="86" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="400" fill="#607184" text-anchor="start">100,000 base ticks + 1,030 duplicates · 180 bps gap at sequence 55,000 (55% of stream)</text>
+<line x1="40" y1="101" x2="1240" y2="101" stroke="#d7e0e8" stroke-width="1"/>
+<rect x="32" y="119" width="600" height="235" rx="5" fill="#ffffff" stroke="#d7e0e8" stroke-width="1"/>
+<text x="54" y="148" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#607184" text-anchor="start">WHOLE STREAM · ACCEPTED ENTRY SIGNALS</text>
+<text x="54" y="173" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" fill="#172536" text-anchor="start">Baseline: no debounce = 99,427</text>
+<text x="54" y="209" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" fill="#172536" text-anchor="start">No debounce</text>
+<rect x="224" y="193" width="270" height="16" rx="2" fill="#f7f9fb" stroke="#f7f9fb" stroke-width="0"/>
+<rect x="224" y="193" width="268.4529" height="16" rx="2" fill="#8a98a8" stroke="#8a98a8" stroke-width="0"/>
+<text x="510" y="209" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#172536" text-anchor="start">99,427</text>
+<text x="54" y="248" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" fill="#172536" text-anchor="start">Fixed</text>
+<rect x="224" y="232" width="270" height="16" rx="2" fill="#f7f9fb" stroke="#f7f9fb" stroke-width="0"/>
+<rect x="224" y="232" width="26.8731" height="16" rx="2" fill="#275dad" stroke="#275dad" stroke-width="0"/>
+<text x="510" y="248" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#172536" text-anchor="start">9,953</text>
+<text x="54" y="287" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" fill="#172536" text-anchor="start">Dynamic</text>
+<rect x="224" y="271" width="270" height="16" rx="2" fill="#f7f9fb" stroke="#f7f9fb" stroke-width="0"/>
+<rect x="224" y="271" width="26.8218" height="16" rx="2" fill="#087e78" stroke="#087e78" stroke-width="0"/>
+<text x="510" y="287" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#172536" text-anchor="start">9,934</text>
+<text x="54" y="329" font-family="Inter,Arial,sans-serif" font-size="10" font-weight="400" fill="#607184" text-anchor="start">Signal reduction vs baseline: fixed 89.9896% · dynamic 90.00875%</text>
+<rect x="650" y="119" width="598" height="235" rx="5" fill="#ffffff" stroke="#d7e0e8" stroke-width="1"/>
+<text x="672" y="148" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#607184" text-anchor="start">FIRST 200 SEQUENCE SLOTS AFTER GAP</text>
+<text x="672" y="173" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" fill="#172536" text-anchor="start">199 quotes passed quality checks</text>
+<text x="672" y="209" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" fill="#172536" text-anchor="start">No debounce</text>
+<rect x="830" y="193" width="205" height="16" rx="2" fill="#f7f9fb" stroke="#f7f9fb" stroke-width="0"/>
+<rect x="830" y="193" width="205" height="16" rx="2" fill="#8a98a8" stroke="#8a98a8" stroke-width="0"/>
+<text x="1055" y="209" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#172536" text-anchor="start">199 / 199</text>
+<text x="672" y="248" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" fill="#172536" text-anchor="start">Fixed</text>
+<rect x="830" y="232" width="205" height="16" rx="2" fill="#f7f9fb" stroke="#f7f9fb" stroke-width="0"/>
+<rect x="830" y="232" width="20.603015075376884" height="16" rx="2" fill="#275dad" stroke="#275dad" stroke-width="0"/>
+<text x="1055" y="248" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#172536" text-anchor="start">20 / 199</text>
+<text x="672" y="287" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" fill="#172536" text-anchor="start">Dynamic</text>
+<rect x="830" y="271" width="205" height="16" rx="2" fill="#f7f9fb" stroke="#f7f9fb" stroke-width="0"/>
+<text x="1055" y="287" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#172536" text-anchor="start">0 / 199</text>
+<text x="672" y="329" font-family="Inter,Arial,sans-serif" font-size="10" font-weight="700" fill="#087e78" text-anchor="start">Dynamic gating admitted 0 of 199 valid local-window entry opportunities.</text>
+<rect x="32" y="371" width="1216" height="139" rx="5" fill="#f7f9fb" stroke="#d7e0e8" stroke-width="1"/>
+<text x="54" y="399" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#607184" text-anchor="start">OCO GAP-THROUGH CHECK</text>
+<text x="54" y="430" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="700" fill="#172536" text-anchor="start">STOP 25 bps</text>
+<text x="54" y="456" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" fill="#607184" text-anchor="start">LIMIT OFFSET 5 bps</text>
+<line x1="260" y1="414" x2="260" y2="484" stroke="#d7e0e8" stroke-width="1"/>
+<text x="286" y="430" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="600" fill="#607184" text-anchor="start">Gap sweep (bps)</text>
+<text x="286" y="454" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="700" fill="#172536" text-anchor="start">0 · 1 · 2 · 5 · 7.5 · 10 · 25 · 50</text>
+<text x="286" y="480" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="700" fill="#275dad" text-anchor="start">Marketable: 0–5 bps  |  Not marketable: ≥7.5 bps</text>
+<line x1="835" y1="414" x2="835" y2="484" stroke="#d7e0e8" stroke-width="1"/>
+<text x="860" y="430" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#172536" text-anchor="start">1 protective stop triggered / policy</text>
+<text x="860" y="456" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="700" fill="#c45b25" text-anchor="start">At the 180 bps gap: limit was not marketable</text>
+<line x1="40" y1="528" x2="1240" y2="528" stroke="#d7e0e8" stroke-width="1"/>
+<text x="40" y="549" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="400" fill="#607184" text-anchor="start">Synthetic entry gating ≠ reduced realized loss. Marketability ≠ fill or execution confirmation.</text>
+</svg>''',
+}
 
-def experiment_pipeline():
-    parts=['<rect width="1200" height="520" fill="#f2f5f7"/>',
-        t(40,48,"EXPERIMENT PIPELINE / REPEATABLE STEPS",16,"#17685c",700),
-        t(40,88,"From synthetic quotes to checked reports",28,"#1b2d33",700)]
-    cards=[
-        (40,"1 · GENERATE",["Seeded quote stream","Known 180 bps gap"]),
-        (270,"2 · INJECT",["Repeat sequences","Old / stale quotes"]),
-        (500,"3 · COMPARE",["No / fixed / dynamic","debounce policies"]),
-        (730,"4 · MEASURE",["Warm-up excluded","Timed repeats"]),
-        (960,"5 · CHECK",["Counts + price rules","CSV / JSON / SVG"]),
-    ]
-    for x,title,lines in cards:
-        parts += [rect(x,150,200,150,"#ffffff","#8ba7b2"),
-            t(x+14,184,title,14,"#17685c",700),
-            t(x+14,225,lines[0],14,"#23323a"),
-            t(x+14,252,lines[1],14,"#23323a")]
-    for x in [240,470,700,930]:
-        parts.append(f'<path d="M{x} 225 h24 l-7 -6 m7 6 l-7 6" fill="none" stroke="#506a73" stroke-width="2.5"/>')
-    parts += [rect(40,354,1120,93,"#e3eee9","#b5d1c6"),
-        t(64,391,"REPEATABLE INPUTS",15,"#17685c",700),
-        t(64,422,"Same seed and count; measured runs follow one warm-up run per policy.",17,"#23323a"),
-        t(40,489,"All outputs are simulations. They do not place live orders or guarantee fills.",15,"#52656d")]
-    save("experiment-pipeline.svg",1200,520,parts)
+for filename, markup in FIGURES.items():
+    (OUT / filename).write_text(markup, encoding="utf-8")
 
-def storage_chart(report):
-    data=json.loads(report.read_text())
-    rows=int(data["rows_read_back"])
-    throughput=float(data["rows_per_second"])
-    parts=['<rect width="1100" height="420" fill="#101827"/>',
-        t(40,48,"DUCKDB / VERIFIED BATCH WRITE",16,"#72d9be",700),
-        t(40,90,f"{rows:,} rows read back",28,"#f3f6fb",700),
-        t(40,124,f"Separate warm-up: {int(data['warmup_row_count']):,} rows · batch size {int(data['batch_size']):,}",16,"#aab8ce"),
-        rect(40,160,1020,100,"#1a2638"),
-        t(65,197,f"Measured throughput: {throughput:,.0f} rows/s",22,"#f3f6fb",700),
-        t(65,231,f"Read-back sequences: {int(data['first_sequence']):,} to {int(data['last_sequence']):,}",16,"#c8d2e1"),
-        rect(40,292,1020,77,"#1a2638"),
-        t(65,325,f"Elapsed: {float(data['elapsed_ms']):,.1f} ms  ·  Database: {int(data['database_bytes']):,} bytes",16,"#c8d2e1"),
-        t(40,402,"This chart is generated only when a verified storage_benchmark.json report exists.",13,"#aab8ce")]
-    save("storage-benchmark.svg",1100,420,parts)
-
-def one_way_latency(report):
-    d=json.loads(report.read_text())
-    values=[
-        ("P50",float(d["p50_one_way_us"]),"#5a9bd8"),
-        ("P95",float(d["p95_one_way_us"]),"#df9c47"),
-        ("P99",float(d["p99_one_way_us"]),"#ca6a66"),
-    ]
-    target_met=values[0][1] < 10.0
-    maximum=max(10.0,max(v for _,v,_ in values))
-    s=['<rect width="1120" height="500" fill="#101827"/>',
-       t(40,48,"NATIVE C++ / ZERO MQ IPC ONE-WAY LATENCY",16,"#72d9be",700),
-       t(40,89,f"{int(d['measured_messages']):,} measured messages after {int(d['warmup_messages']):,} warm-up",22,"#f3f6fb",700),
-       t(40,121,"C++ sender and receiver processes · IPC socket · same-host monotonic clock",15,"#aab8ce")]
-    for i,(label,value,color) in enumerate(values):
-        y=170+i*78
-        s += [t(48,y+25,label,16,color,700),
-              rect(150,y,730,38,"#2b384d","#2b384d",6),
-              rect(150,y,730*value/maximum,38,color,color,6),
-              t(min(910,165+730*value/maximum),y+25,f"{value:.3f} us",17,"#f3f6fb",700)]
-    s += [rect(40,414,1040,42,"#202c3d","#40536c",8),
-          t(60,441,"Sub-10 us p50: " + ("MET on this run" if target_met else "NOT MET on this run"),16,"#72d9be" if target_met else "#ffbc78",700),
-          t(40,485,"Machine-dependent measurement; ZeroMQ itself is not a lock-free transport.",14,"#c8d2e1")]
-    save("zmq-ipc-oneway-latency.svg",1120,500,s)
-
-def storage_sweep_chart(report):
-    data=json.loads(report.read_text())
-    rows=sorted(data["results"],key=lambda row:int(row["batch_size"]))
-    maximum=max(float(row["rows_per_second"]) for row in rows) or 1
-    parts=['<rect width="1120" height="470" fill="#101827"/>',
-        t(40,48,"DUCKDB / BATCH-SIZE EXPERIMENT",16,"#72d9be",700),
-        t(40,89,f"{int(data['ticks_per_run']):,} ticks per run · one warm-up and one measured run",22,"#f3f6fb",700),
-        t(40,121,"Every measured database is read back and sequence-checked.",15,"#aab8ce")]
-    colors=["#64c8e6","#b39cf4","#68dca7"]
-    for index,row in enumerate(rows):
-        y=180+index*88
-        rate=float(row["rows_per_second"])
-        parts += [rect(40,y-31,1040,70,"#1a2638"),
-            t(60,y-5,f"Batch {int(row['batch_size']):,}",16,colors[index],700),
-            rect(250,y-20,500,22,"#2b384d","#2b384d",5),
-            rect(250,y-20,500*rate/maximum,22,colors[index],colors[index],5),
-            t(250,y+23,f"{rate:,.0f} rows/s",15,"#f3f6fb",700),
-            t(800,y-2,f"P95 not sampled · {int(row['rows_read_back']):,} rows verified",14,"#c8d2e1")]
-    parts += [t(40,450,"Machine-specific result; use the same hardware and tick count when comparing batch sizes.",14,"#aab8ce")]
-    save("storage-batch-sweep.svg",1120,470,parts)
-
-def shared_memory_latency(report):
-    d=json.loads(report.read_text())
-    values=[
-        ("P50",float(d["p50_one_way_us"]),"#64c8e6"),
-        ("P95",float(d["p95_one_way_us"]),"#b39cf4"),
-        ("P99",float(d["p99_one_way_us"]),"#68dca7"),
-    ]
-    max_value=max(10.0,max(v for _,v,_ in values))
-    passed=float(d["p50_one_way_us"])<10.0
-    parts=['<rect width="1120" height="500" fill="#101827"/>',
-        t(40,48,"LOCK-FREE IPC / SHARED-MEMORY SPSC RING",16,"#72d9be",700),
-        t(40,89,f"{int(d['measured_messages']):,} measured messages after {int(d['warmup_messages']):,} warm-up",22,"#f3f6fb",700),
-        t(40,121,"Producer and consumer are separate processes sharing one memory mapping.",15,"#aab8ce")]
-    for index,(label,value,color) in enumerate(values):
-        y=170+index*75
-        parts += [t(48,y+26,label,16,color,700),
-            rect(150,y,730,38,"#2b384d","#2b384d",6),
-            rect(150,y,730*value/max_value,38,color,color,6),
-            t(min(910,165+730*value/max_value),y+25,f"{value:.3f} us",17,"#f3f6fb",700)]
-    parts += [rect(40,414,1040,42,"#202c3d","#40536c",8),
-        t(60,441,"Sub-10 us p50: "+("MET on this run" if passed else "NOT MET on this run"),16,"#72d9be" if passed else "#ffbc78",700),
-        t(40,485,"The chart checks lock-free atomics separately from ZeroMQ socket measurements.",14,"#c8d2e1")]
-    save("shm-spsc-ipc-latency.svg",1120,500,parts)
-
-def shared_memory_sweep_chart(report):
-    data=json.loads(report.read_text())
-    rows=sorted(data["results"],key=lambda row:int(row["queue_capacity"]))
-    maximum=max(10.0,max(float(row["p50_one_way_us"]) for row in rows))
-    colors=["#64c8e6","#b39cf4","#68dca7","#df9c47"]
-    parts=['<rect width="1200" height="600" fill="#101827"/>',
-        t(40,48,"LOCK-FREE IPC / QUEUE CAPACITY SWEEP",16,"#72d9be",700),
-        t(40,89,f"{int(data['measured_messages_per_capacity']):,} measured messages per capacity after {int(data['warmup_messages_per_capacity']):,} warm-up",21,"#f3f6fb",700),
-        t(40,121,"Same shared-memory producer/consumer path; smaller capacity limits queue backlog.",15,"#aab8ce")]
-    for index,row in enumerate(rows):
-        y=190+index*83
-        capacity=int(row["queue_capacity"])
-        p50=float(row["p50_one_way_us"])
-        p99=float(row["p99_one_way_us"])
-        rate=float(row["throughput_messages_per_second"])
-        met=p50<10.0
-        parts += [rect(40,y-31,1120,70,"#1a2638"),
-            t(60,y-4,f"Capacity {capacity}",16,colors[index],700),
-            rect(245,y-18,470,22,"#2b384d","#2b384d",5),
-            rect(245,y-18,470*p50/maximum,22,colors[index],colors[index],5),
-            t(245,y+24,f"P50 {p50:.3f} us · P99 {p99:.3f} us",14,"#f3f6fb",700),
-            t(755,y-2,f"{rate:,.0f} msg/s",15,"#c8d2e1",700),
-            t(970,y-2,"TARGET MET" if met else "over 10 us",14,"#72d9be" if met else "#ffbc78",700)]
-    best=int(data["best_p50_capacity"])
-    parts += [rect(40,535,1120,38,"#202c3d","#40536c",7),
-        t(60,560,f"Lowest observed p50: capacity {best}. Keep this result machine-specific; also check p99 and throughput.",14,"#f3f6fb",700)]
-    save("shm-spsc-capacity-sweep.svg",1200,600,parts)
-
-def shared_memory_sweep_chart(report):
-    data=json.loads(report.read_text())
-    rows=sorted(data["results"],key=lambda row:int(row["queue_capacity"]))
-    max_us=max(10.0,max(float(row["p50_one_way_us"]) for row in rows))
-    colors=["#64c8e6","#b39cf4","#68dca7","#df9c47"]
-    parts=['<rect width="1200" height="600" fill="#101827"/>',
-        t(40,48,"LOCK-FREE IPC / QUEUE CAPACITY SWEEP",16,"#72d9be",700),
-        t(40,89,f"{int(data['measured_messages_per_capacity']):,} measured messages per capacity after {int(data['warmup_messages_per_capacity']):,} warm-up",21,"#f3f6fb",700),
-        t(40,121,"Same shared-memory producer/consumer path; smaller capacity limits queue backlog.",15,"#aab8ce")]
-    for index,row in enumerate(rows):
-        y=190+index*83
-        capacity=int(row["queue_capacity"])
-        p50=float(row["p50_one_way_us"])
-        p99=float(row["p99_one_way_us"])
-        rate=float(row["throughput_messages_per_second"])
-        passed=p50<10.0
-        parts += [rect(40,y-31,1120,70,"#1a2638"),
-            t(60,y-4,f"Capacity {capacity}",16,colors[index],700),
-            rect(245,y-18,470,22,"#2b384d","#2b384d",5),
-            rect(245,y-18,470*p50/max_us,22,colors[index],colors[index],5),
-            t(245,y+24,f"P50 {p50:.3f} us · P99 {p99:.3f} us",14,"#f3f6fb",700),
-            t(755,y-2,f"{rate:,.0f} msg/s",15,"#c8d2e1",700),
-            t(970,y-2,"TARGET MET" if passed else "over 10 us",14,"#72d9be" if passed else "#ffbc78",700)]
-    best=int(data["best_p50_capacity"])
-    parts += [rect(40,535,1120,38,"#202c3d","#40536c",7),
-        t(60,560,f"Lowest observed p50: capacity {best}. Also check p99 and throughput; results depend on the host.",14,"#f3f6fb",700)]
-    save("shm-spsc-capacity-sweep.svg",1200,600,parts)
-
-def post_crash_signal_suppression(d):
-    policies = d.get("policies", [])
-    if not policies or any("post_crash_window_accepted_signals" not in row for row in policies):
-        return
-    order = ["no debounce", "fixed debounce", "dynamic debounce"]
-    by_policy = {row["policy"]: row for row in policies}
-    rows = [by_policy[name] for name in order]
-    valid = max(int(row["post_crash_window_valid_quotes"]) for row in rows)
-    window = int(d["post_crash_signal_window_ticks"])
-    crash_bps = float(d["crash_gap_bps"])
-    colors = ["#df9c47", "#b39cf4", "#68dca7"]
-    s = ['<rect width="1200" height="590" fill="#101827"/>',
-         t(40,48,"FLASH CRASH / ENTRY-SIGNAL SUPPRESSION",16,"#72d9be",700),
-         t(40,91,f"First {window} sequence slots after a {crash_bps:g} bps synthetic gap",27,"#f3f6fb",700),
-         t(40,124,f"{valid} valid quotes reached the strategy gate; quote validation and protective risk checks are separate.",15,"#aab8ce")]
-    max_accepted = max(1, max(int(row["post_crash_window_accepted_signals"]) for row in rows))
-    for index, (row, color) in enumerate(zip(rows, colors)):
-        y = 170 + index * 112
-        accepted = int(row["post_crash_window_accepted_signals"])
-        held = int(row["post_crash_window_debounced_signals"])
-        s += [rect(40,y-25,1120,94,"#1a2638"),
-              t(60,y+5,row["policy"].upper(),16,color,700),
-              rect(300,y-5,520,26,"#2b384d","#2b384d",6),
-              rect(300,y-5,520*accepted/max_accepted,26,color,color,6),
-              t(300,y+40,f"Accepted entry signals: {accepted} / {valid}",16,"#f3f6fb",700),
-              t(830,y+2,f"Held by debounce: {held}",15,"#c8d2e1",700)]
-    dynamic = int(by_policy["dynamic debounce"]["post_crash_window_accepted_signals"])
-    no_gate = int(by_policy["no debounce"]["post_crash_window_accepted_signals"])
-    s += [rect(40,525,1120,42,"#202c3d","#40536c",8),
-          t(60,552,f"Dynamic debounce accepted {dynamic} vs {no_gate} without debounce in this window.",15,"#72d9be",700),
-          t(40,585,"Synthetic replay only: this measures entry-signal gating, not realized loss, fills, or profitability.",13,"#aab8ce")]
-    save("post-crash-signal-suppression.svg",1200,600,s)
-
-def main():
-    d=json.loads((R/"artifacts"/"experiment_summary.json").read_text())
-    architecture();flow();dashboard(d);charts(d)
-    post_crash_signal_suppression(d)
-    data_quality(d);performance_comparison(d);experiment_pipeline()
-    zmq_report=R/"artifacts"/"zmq_ipc_benchmark.json"
-    if zmq_report.exists():latency("zmq-ipc-latency.svg",zmq_report,"zmq")
-    native_oneway=R/"artifacts"/"cpp_zmq_ipc_oneway_benchmark.json"
-    if native_oneway.exists():one_way_latency(native_oneway)
-    shared_memory=R/"artifacts"/"shm_spsc_ipc_benchmark.json"
-    if shared_memory.exists():shared_memory_latency(shared_memory)
-    shared_sweep=R/"artifacts"/"shm_spsc_capacity_sweep.json"
-    if shared_sweep.exists():shared_memory_sweep_chart(shared_sweep)
-    shared_sweep=R/"artifacts"/"shm_spsc_capacity_sweep.json"
-    if shared_sweep.exists():shared_memory_sweep_chart(shared_sweep)
-    cpp_report=R/"artifacts"/"cpp_benchmark.json"
-    if not cpp_report.exists():cpp_report=R/"artifacts"/"cpp_benchmark_10m.json"
-    if cpp_report.exists():latency("cpp-benchmark.svg",cpp_report,"cpp")
-    storage_report=R/"artifacts"/"storage_benchmark.json"
-    if storage_report.exists():storage_chart(storage_report)
-    sweep_report=R/"artifacts"/"storage_batch_sweep.json"
-    if sweep_report.exists():storage_sweep_chart(sweep_report)
-    print(f"Generated SVG reports in {A}")
-if __name__=="__main__":main()
+print(f"Generated {len(FIGURES)} compact SVG figures in {OUT}")
