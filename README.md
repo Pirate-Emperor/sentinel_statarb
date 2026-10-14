@@ -690,5 +690,5 @@ For the full stress run, the separate warm-up pass also wrote and read back 10,1
 
 ## P. Current HPC follow-up status
 
-At the latest status check on 2026-10-14 14:14 UTC, dedicated integrator-1 run #9 ([Sentinel StatArb HPC CPU Validation](https://github.com/SpryzenHell/integrator/actions/runs/38571496094)) was still queued. The integrator Actions API showed [GraphRAG A100 Security and Retrieval Evaluation run #38570981068](https://github.com/SpryzenHell/integrator/actions/runs/38570981068) in progress on the shared A100 runner. This is a queue/resource contention status, not a failed Sentinel StatArb test. Until run #9 has a final success artifact, HPC #8 remains the latest verified HPC run and the new 200-slot post-crash result remains hosted-CI-verified rather than HPC-verified.
+At the latest status check on 2026-10-14 14:22 UTC, dedicated integrator-1 run #9 ([Sentinel StatArb HPC CPU Validation](https://github.com/SpryzenHell/integrator/actions/runs/38571496094)) had moved from queued to **in progress**; the runner job had started, but the benchmark steps had not yet begun. This is shared-runner scheduling, not a failed Sentinel StatArb test. Until run #9 has a final success artifact, HPC #8 remains the latest verified HPC run and the new 200-slot post-crash result remains hosted-CI-verified rather than HPC-verified.
 
