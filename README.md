@@ -131,22 +131,27 @@ See the [experiment notes](docs/EXPERIMENTS.md) and [reports and diagrams index]
 
 The checked-in JSON/CSV files and diagrams are reference runs from synthetic data. Throughput and latency change with the CPU, operating system, compiler, process scheduling, and test settings. Re-run the commands above to produce results for your machine.
 
-### Verification status (latest previously completed hosted CI reference run)
+### Verification status — HPC run completed successfully
 
-| Claim area | Evidence currently established | Remaining caveat |
+**[integrator-1 HPC CPU Validation #8 passed](https://github.com/SpryzenHell/integrator/actions/runs/38569070387)** on `scn11-mn.mgmt.siddhi.param` (dual AMD EPYC 7742 CPUs; 2× A100 GPUs present but not used by this CPU benchmark; Ubuntu 22.04, GCC 11.4, CPython 3.12.15). The tested Sentinel StatArb source was `4958b6dde6f8bda5dbbfc4b52b72adb2b64c7d43`. Python tests passed 24/24, native CTest passed 4/4, and all generated-report validation checks passed.
+
+| Claim area | Measured HPC evidence | Important boundary |
 |---|---|---|
-| Native C++ engine | 10M synthetic-tick run: about 30.40M events/s and 0.061 μs sampled p99 processing time in the later hosted CI reference run. | This is hot-path processing, not end-to-end market latency; HPC measurements are machine-specific. |
-| Python GIL comparison | Added a paired C++ vs CPython producer/consumer benchmark with a deterministic identical workload, warm-up, repeated measurements, and semantic-parity gates. | Do not quote a speedup until the generated report is checked; call it HPC evidence only when recorded on `integrator-1`. |
-| Dynamic debouncer + 5 bps OCO | In a 100K synthetic policy experiment, accepted signals fell from 99,427 without debouncing to 9,934 with dynamic debouncing (about 90.0% fewer). Tests cover the exact 5 bps offset, one-shot OCO behavior, and a gap-through case where the stop-limit is not marketable. | Synthetic risk-control tests are not live-market P&L or proof of actual slippage reduction. |
-| Quote integrity + IPC | Duplicate, out-of-order, stale and excessively future-dated quotes have rejection tests. A prior shared-memory SPSC run measured 3.895 μs p50 / 6.599 μs p99, with lock-free atomics reported by the host. | This is shared-memory IPC, not ZeroMQ. A separate ZeroMQ run measured about 56.9 μs p50 / 73.35 μs p99 one-way, so ZeroMQ does not meet the sub-10 μs claim. |
-| DuckDB logging | 10.1M rows written and read back, all sequences unique over 0–10,099,999, zero invalid quotes; prior hosted throughput was about 278K rows/s. | Throughput depends on host/storage; the dedicated HPC job repeats the full write/read-back test. |
+| Native C++ execution engine | 10M synthetic ticks: **37.77M events/s**, 0.050 μs sampled p50 and **0.051 μs sampled p99** processing latency; zero invalid ticks. | Sampled timing wraps order/debouncer processing, not end-to-end market-to-order latency. |
+| Python GIL comparison | On the paired 1M-tick workload: native C++ **48.79M events/s** vs GIL-enabled CPython producer/consumer **264.6K events/s**; **184.39×** measured pipeline throughput ratio. Signal counts, stop outcome and invalid-tick checks matched. | This compares the full native SPSC pipeline with Python `queue.Queue`, including object/queue overhead—not isolated GIL overhead alone. Host/workload-specific. |
+| Dynamic debouncer + 5 bps OCO | Accepted signals fell from **99,427** without debounce to **9,934** with dynamic debounce (**90.01% fewer**). The 180 bps crash gap triggered the stop, but the 5 bps-offset stop-limit was not marketable afterward. | Synthetic backtest only; this does not establish live P&L, actual slippage reduction, or guaranteed fills. |
+| Quote integrity + lock-free IPC | Duplicate/out-of-order/stale quote rejection verified; shared-memory SPSC capacity 16 delivered **3.397 μs p50 / 6.102 μs p99** with lock-free atomics and zero sequence/timestamp errors. | The low-latency path is **shared-memory SPSC, not ZeroMQ**. ZeroMQ one-way p50/p99 were 25.999/31.009 μs and its transport is not lock-free. The shared-memory maximum also had scheduler outliers, so quote percentiles rather than an absolute bound. |
+| Async DuckDB logging | **10.1M rows** written and read back; 10.1M distinct sequences spanning 0–10,099,999; zero invalid quotes; **241.7K rows/s** in the measured pass (41.79 s). | Synthetic data and host-specific disk/CPU throughput. |
 
-The dedicated [integrator-1 HPC workflow](https://github.com/SpryzenHell/integrator/blob/main/.github/workflows/sentinel-statarb-hpc.yml) records the actual host/toolchain, runs the paired benchmark and IPC tests, and verifies 10.1M DuckDB rows. Check the [HPC workflow run history](https://github.com/SpryzenHell/integrator/actions/workflows/sentinel-statarb-hpc.yml) and its result status; machine-readable results are intended to be saved under `artifacts/sentinel-statarb-hpc/` on `integrator/main`. Its measured report—not the mere presence of an A100—is the source for any HPC-specific claim. The project and CI changes are committed directly to `main`; check the workflow result before using updated numbers.
+Full host details, raw metrics, IPC capacity sweep, OCO gap test, and caveats are recorded in [the HPC validation report](docs/HPC_VALIDATION_2026-10-14.md). Machine-readable results are persisted under [`integrator/main/artifacts/sentinel-statarb-hpc/`](https://github.com/SpryzenHell/integrator/tree/main/artifacts/sentinel-statarb-hpc).
 
+### Resume wording supported by current evidence
 
-The saved native C++ ZeroMQ report records about **56.5 μs p50 one-way latency** and **114.3 μs p50 round-trip latency** in a paced, 20K-message run. That does not meet a sub-10 μs ZeroMQ claim, and ZeroMQ is not lock-free. The process-shared SPSC benchmark measures the separate lock-free shared-memory path. Its report is the evidence for any sub-10 μs lock-free handoff claim; the result varies by host and must not be inferred from the ZeroMQ timing.
+- **Native engine:** Built a native C++17 execution simulator; on an AMD EPYC HPC node it processed 10M synthetic ticks at 37.77M events/s (0.051 μs sampled p99 hot-path processing). A paired GIL-enabled CPython pipeline benchmark showed 184.39× higher measured throughput with execution/risk parity.
+- **Crash controls:** Implemented dynamic signal debouncing and 5 bps OCO stop-limit protection; in a seeded 180 bps crash-gap replay, dynamic debounce accepted 90.01% fewer signals than no debounce, and the test confirmed that a gap-through stop-limit can remain unfilled.
+- **Quote integrity / persistence:** Rejected duplicate, out-of-order and stale quotes; benchmarked lock-free process-shared SPSC IPC at 3.397 μs p50 / 6.102 μs p99 and asynchronously wrote/read-validated 10.1M DuckDB rows with zero invalid quotes.
 
-A 5 bps stop-limit offset sets a price boundary; it does not promise a fill. The gap sweep deliberately includes price moves larger than the offset so this limitation is visible in the tests.
+Do not label the low-latency shared-memory IPC result as “lock-free ZeroMQ,” and do not claim live-market profitability based on these synthetic tests.
 
 ## Main files
 
