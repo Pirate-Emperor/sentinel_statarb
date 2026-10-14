@@ -79,6 +79,19 @@ class ExperimentsTests(unittest.TestCase):
             self.assertFalse(row["stop_limit_marketable_at_crash"])
         self.assertGreater(next(x for x in s["policies"] if x["policy"]=="dynamic debounce")["debounced_signals"],
                            next(x for x in s["policies"] if x["policy"]=="no debounce")["debounced_signals"])
+        no_debounce=next(x for x in s["policies"] if x["policy"]=="no debounce")
+        fixed=next(x for x in s["policies"] if x["policy"]=="fixed debounce")
+        dynamic=next(x for x in s["policies"] if x["policy"]=="dynamic debounce")
+        self.assertEqual(s["post_crash_signal_window_ticks"],200)
+        for row in s["policies"]:
+            self.assertEqual(row["post_crash_window_ticks"],200)
+            self.assertEqual(row["post_crash_window_valid_quotes"],
+                             row["post_crash_window_accepted_signals"]+row["post_crash_window_debounced_signals"])
+        self.assertGreater(no_debounce["post_crash_window_accepted_signals"],
+                           fixed["post_crash_window_accepted_signals"])
+        self.assertGreater(fixed["post_crash_window_accepted_signals"],
+                           dynamic["post_crash_window_accepted_signals"])
+        self.assertEqual(dynamic["post_crash_window_accepted_signals"],0)
 
 class FakeDuckDBLoggerTests(unittest.IsolatedAsyncioTestCase):
     async def test_async_writer_batches_without_losing_rows(self):
