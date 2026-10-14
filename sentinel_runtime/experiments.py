@@ -102,7 +102,7 @@ def run_experiments(count: int = 100_000, repeats: int = 3, seed: int = 20261011
     gap_rows=oco_gap_sweep()
     return {"project":"Sentinel StatArb","seed":seed,"base_tick_count":count,"input_event_count_with_duplicates":event_count,
         "timestamp_step_ns":TICK_STEP_NS,"crash_at_fraction":0.55,"crash_gap_bps":180.0,
-        "post_crash_signal_window_ticks":min(200,max(0,count-max(1,int(count*0.55))),
+        "post_crash_signal_window_ticks":min(200,max(0,count-max(1,int(count*0.55)))),
         "warmup_runs_per_policy":1,"measured_repeats_per_policy":repeats,"policies":results,"oco_gap_sweep":gap_rows,
         "notes":["Synthetic data only; rates and timings are machine-dependent.","First run is excluded from all reported timing medians.",
         "A 5 bps stop-limit offset can remain unfilled when a price gap exceeds the offset.",
