@@ -1,0 +1,249 @@
+{
+  "project": "Sentinel StatArb",
+  "seed": 20261011,
+  "base_tick_count": 100000,
+  "input_event_count_with_duplicates": 101030,
+  "timestamp_step_ns": 10000,
+  "crash_at_fraction": 0.55,
+  "crash_gap_bps": 180,
+  "warmup_runs_per_policy": 1,
+  "measured_repeats_per_policy": 3,
+  "policies": [
+    {
+      "policy": "no debounce",
+      "input_events": 101030,
+      "accepted_signals": 99427,
+      "debounced_signals": 0,
+      "signal_reduction_pct": 0,
+      "duplicate_sequences": 1030,
+      "out_of_order_timestamps": 473,
+      "stale_quotes": 100,
+      "future_quotes": 0,
+      "stop_triggers": 1,
+      "elapsed_ms": 301.908849,
+      "events_per_second": 334637.42561583547,
+      "sampled_latency_p50_us": 1.131,
+      "sampled_latency_p95_us": 1.421,
+      "sampled_latency_p99_us": 1.946,
+      "stop_limit_marketable_at_crash": false,
+      "measured_repeats": 3,
+      "warmup_runs": 1
+    },
+    {
+      "policy": "fixed debounce",
+      "input_events": 101030,
+      "accepted_signals": 9953,
+      "debounced_signals": 89474,
+      "signal_reduction_pct": 89.9896406408722,
+      "duplicate_sequences": 1030,
+      "out_of_order_timestamps": 473,
+      "stale_quotes": 100,
+      "future_quotes": 0,
+      "stop_triggers": 1,
+      "elapsed_ms": 361.057092,
+      "events_per_second": 279817.2428641839,
+      "sampled_latency_p50_us": 1.516,
+      "sampled_latency_p95_us": 1.828,
+      "sampled_latency_p99_us": 3.069,
+      "stop_limit_marketable_at_crash": false,
+      "measured_repeats": 3,
+      "warmup_runs": 1
+    },
+    {
+      "policy": "dynamic debounce",
+      "input_events": 101030,
+      "accepted_signals": 9934,
+      "debounced_signals": 89493,
+      "signal_reduction_pct": 90.00875013829241,
+      "duplicate_sequences": 1030,
+      "out_of_order_timestamps": 473,
+      "stale_quotes": 100,
+      "future_quotes": 0,
+      "stop_triggers": 1,
+      "elapsed_ms": 344.686691,
+      "events_per_second": 293106.76227995125,
+      "sampled_latency_p50_us": 1.527,
+      "sampled_latency_p95_us": 1.82,
+      "sampled_latency_p99_us": 2.756,
+      "stop_limit_marketable_at_crash": false,
+      "measured_repeats": 3,
+      "warmup_runs": 1
+    }
+  ],
+  "oco_gap_sweep": [
+    {
+      "offset_bps": 0,
+      "gap_bps": 0,
+      "limit_price": 99.75,
+      "observed_price": 99.75,
+      "marketable": true
+    },
+    {
+      "offset_bps": 0,
+      "gap_bps": 1,
+      "limit_price": 99.75,
+      "observed_price": 99.740025,
+      "marketable": false
+    },
+    {
+      "offset_bps": 0,
+      "gap_bps": 2,
+      "limit_price": 99.75,
+      "observed_price": 99.73005,
+      "marketable": false
+    },
+    {
+      "offset_bps": 0,
+      "gap_bps": 5,
+      "limit_price": 99.75,
+      "observed_price": 99.700125,
+      "marketable": false
+    },
+    {
+      "offset_bps": 0,
+      "gap_bps": 7.5,
+      "limit_price": 99.75,
+      "observed_price": 99.6751875,
+      "marketable": false
+    },
+    {
+      "offset_bps": 0,
+      "gap_bps": 10,
+      "limit_price": 99.75,
+      "observed_price": 99.65025,
+      "marketable": false
+    },
+    {
+      "offset_bps": 0,
+      "gap_bps": 25,
+      "limit_price": 99.75,
+      "observed_price": 99.500625,
+      "marketable": false
+    },
+    {
+      "offset_bps": 0,
+      "gap_bps": 50,
+      "limit_price": 99.75,
+      "observed_price": 99.25125,
+      "marketable": false
+    },
+    {
+      "offset_bps": 5,
+      "gap_bps": 0,
+      "limit_price": 99.700125,
+      "observed_price": 99.75,
+      "marketable": true
+    },
+    {
+      "offset_bps": 5,
+      "gap_bps": 1,
+      "limit_price": 99.700125,
+      "observed_price": 99.740025,
+      "marketable": true
+    },
+    {
+      "offset_bps": 5,
+      "gap_bps": 2,
+      "limit_price": 99.700125,
+      "observed_price": 99.73005,
+      "marketable": true
+    },
+    {
+      "offset_bps": 5,
+      "gap_bps": 5,
+      "limit_price": 99.700125,
+      "observed_price": 99.700125,
+      "marketable": true
+    },
+    {
+      "offset_bps": 5,
+      "gap_bps": 7.5,
+      "limit_price": 99.700125,
+      "observed_price": 99.6751875,
+      "marketable": false
+    },
+    {
+      "offset_bps": 5,
+      "gap_bps": 10,
+      "limit_price": 99.700125,
+      "observed_price": 99.65025,
+      "marketable": false
+    },
+    {
+      "offset_bps": 5,
+      "gap_bps": 25,
+      "limit_price": 99.700125,
+      "observed_price": 99.500625,
+      "marketable": false
+    },
+    {
+      "offset_bps": 5,
+      "gap_bps": 50,
+      "limit_price": 99.700125,
+      "observed_price": 99.25125,
+      "marketable": false
+    },
+    {
+      "offset_bps": 10,
+      "gap_bps": 0,
+      "limit_price": 99.65025,
+      "observed_price": 99.75,
+      "marketable": true
+    },
+    {
+      "offset_bps": 10,
+      "gap_bps": 1,
+      "limit_price": 99.65025,
+      "observed_price": 99.740025,
+      "marketable": true
+    },
+    {
+      "offset_bps": 10,
+      "gap_bps": 2,
+      "limit_price": 99.65025,
+      "observed_price": 99.73005,
+      "marketable": true
+    },
+    {
+      "offset_bps": 10,
+      "gap_bps": 5,
+      "limit_price": 99.65025,
+      "observed_price": 99.700125,
+      "marketable": true
+    },
+    {
+      "offset_bps": 10,
+      "gap_bps": 7.5,
+      "limit_price": 99.65025,
+      "observed_price": 99.6751875,
+      "marketable": true
+    },
+    {
+      "offset_bps": 10,
+      "gap_bps": 10,
+      "limit_price": 99.65025,
+      "observed_price": 99.65025,
+      "marketable": true
+    },
+    {
+      "offset_bps": 10,
+      "gap_bps": 25,
+      "limit_price": 99.65025,
+      "observed_price": 99.500625,
+      "marketable": false
+    },
+    {
+      "offset_bps": 10,
+      "gap_bps": 50,
+      "limit_price": 99.65025,
+      "observed_price": 99.25125,
+      "marketable": false
+    }
+  ],
+  "notes": [
+    "Synthetic data only; rates and timings are machine-dependent.",
+    "The first run for each policy is excluded from the reported timing medians.",
+    "A 5 bps stop-limit offset can remain unfilled when a price gap exceeds the offset.",
+    "Risk checks run for each valid quote; signal debouncing does not disable protective orders."
+  ]
+}

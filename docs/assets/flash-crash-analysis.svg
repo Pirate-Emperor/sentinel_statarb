@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="560" viewBox="0 0 1280 560"><defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L6,3.5 L0,7 Z" fill="#8291a2"/></marker></defs>
+<rect x="0" y="0" width="1280" height="560" rx="0" fill="#ffffff" stroke="#ffffff" stroke-width="0"/>
+<rect x="0" y="0" width="1280" height="1" rx="0" fill="#ffffff" stroke="#ffffff" stroke-width="0"/>
+<text x="40" y="30" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="700" fill="#275dad" text-anchor="start">SENTINEL STATARB / 03 · SEEDED REPLAY</text>
+<text x="40" y="62" font-family="Inter,Arial,sans-serif" font-size="27" font-weight="700" fill="#172536" text-anchor="start">Crash gating &amp; stop-limit boundary</text>
+<text x="40" y="86" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="400" fill="#607184" text-anchor="start">100,000 base ticks + 1,030 duplicates · 180 bps gap at sequence 55,000 (55% of stream)</text>
+<line x1="40" y1="101" x2="1240" y2="101" stroke="#d7e0e8" stroke-width="1"/>
+<rect x="32" y="119" width="600" height="235" rx="5" fill="#ffffff" stroke="#d7e0e8" stroke-width="1"/>
+<text x="54" y="148" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#607184" text-anchor="start">WHOLE STREAM · ACCEPTED ENTRY SIGNALS</text>
+<text x="54" y="173" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" fill="#172536" text-anchor="start">Baseline: no debounce = 99,427</text>
+<text x="54" y="209" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" fill="#172536" text-anchor="start">No debounce</text>
+<rect x="224" y="193" width="270" height="16" rx="2" fill="#f7f9fb" stroke="#f7f9fb" stroke-width="0"/>
+<rect x="224" y="193" width="268.4529" height="16" rx="2" fill="#8a98a8" stroke="#8a98a8" stroke-width="0"/>
+<text x="510" y="209" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#172536" text-anchor="start">99,427</text>
+<text x="54" y="248" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" fill="#172536" text-anchor="start">Fixed</text>
+<rect x="224" y="232" width="270" height="16" rx="2" fill="#f7f9fb" stroke="#f7f9fb" stroke-width="0"/>
+<rect x="224" y="232" width="26.8731" height="16" rx="2" fill="#275dad" stroke="#275dad" stroke-width="0"/>
+<text x="510" y="248" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#172536" text-anchor="start">9,953</text>
+<text x="54" y="287" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" fill="#172536" text-anchor="start">Dynamic</text>
+<rect x="224" y="271" width="270" height="16" rx="2" fill="#f7f9fb" stroke="#f7f9fb" stroke-width="0"/>
+<rect x="224" y="271" width="26.8218" height="16" rx="2" fill="#087e78" stroke="#087e78" stroke-width="0"/>
+<text x="510" y="287" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#172536" text-anchor="start">9,934</text>
+<text x="54" y="329" font-family="Inter,Arial,sans-serif" font-size="10" font-weight="400" fill="#607184" text-anchor="start">Signal reduction vs baseline: fixed 89.9896% · dynamic 90.00875%</text>
+<rect x="650" y="119" width="598" height="235" rx="5" fill="#ffffff" stroke="#d7e0e8" stroke-width="1"/>
+<text x="672" y="148" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#607184" text-anchor="start">FIRST 200 SEQUENCE SLOTS AFTER GAP</text>
+<text x="672" y="173" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" fill="#172536" text-anchor="start">199 quotes passed quality checks</text>
+<text x="672" y="209" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" fill="#172536" text-anchor="start">No debounce</text>
+<rect x="830" y="193" width="205" height="16" rx="2" fill="#f7f9fb" stroke="#f7f9fb" stroke-width="0"/>
+<rect x="830" y="193" width="205" height="16" rx="2" fill="#8a98a8" stroke="#8a98a8" stroke-width="0"/>
+<text x="1055" y="209" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#172536" text-anchor="start">199 / 199</text>
+<text x="672" y="248" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" fill="#172536" text-anchor="start">Fixed</text>
+<rect x="830" y="232" width="205" height="16" rx="2" fill="#f7f9fb" stroke="#f7f9fb" stroke-width="0"/>
+<rect x="830" y="232" width="20.603015075376884" height="16" rx="2" fill="#275dad" stroke="#275dad" stroke-width="0"/>
+<text x="1055" y="248" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#172536" text-anchor="start">20 / 199</text>
+<text x="672" y="287" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" fill="#172536" text-anchor="start">Dynamic</text>
+<rect x="830" y="271" width="205" height="16" rx="2" fill="#f7f9fb" stroke="#f7f9fb" stroke-width="0"/>
+<text x="1055" y="287" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#172536" text-anchor="start">0 / 199</text>
+<text x="672" y="329" font-family="Inter,Arial,sans-serif" font-size="10" font-weight="700" fill="#087e78" text-anchor="start">Dynamic gating admitted 0 of 199 valid local-window entry opportunities.</text>
+<rect x="32" y="371" width="1216" height="139" rx="5" fill="#f7f9fb" stroke="#d7e0e8" stroke-width="1"/>
+<text x="54" y="399" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#607184" text-anchor="start">OCO GAP-THROUGH CHECK</text>
+<text x="54" y="430" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="700" fill="#172536" text-anchor="start">STOP 25 bps</text>
+<text x="54" y="456" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" fill="#607184" text-anchor="start">LIMIT OFFSET 5 bps</text>
+<line x1="260" y1="414" x2="260" y2="484" stroke="#d7e0e8" stroke-width="1"/>
+<text x="286" y="430" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="600" fill="#607184" text-anchor="start">Gap sweep (bps)</text>
+<text x="286" y="454" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="700" fill="#172536" text-anchor="start">0 · 1 · 2 · 5 · 7.5 · 10 · 25 · 50</text>
+<text x="286" y="480" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="700" fill="#275dad" text-anchor="start">Marketable: 0–5 bps  |  Not marketable: ≥7.5 bps</text>
+<line x1="835" y1="414" x2="835" y2="484" stroke="#d7e0e8" stroke-width="1"/>
+<text x="860" y="430" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="700" fill="#172536" text-anchor="start">1 protective stop triggered / policy</text>
+<text x="860" y="456" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="700" fill="#c45b25" text-anchor="start">At the 180 bps gap: limit was not marketable</text>
+<line x1="40" y1="528" x2="1240" y2="528" stroke="#d7e0e8" stroke-width="1"/>
+<text x="40" y="549" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="400" fill="#607184" text-anchor="start">Synthetic entry gating ≠ reduced realized loss. Marketability ≠ fill or execution confirmation.</text>
+</svg>

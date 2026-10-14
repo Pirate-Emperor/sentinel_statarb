@@ -1,0 +1,108 @@
+name: Sentinel StatArb checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sentinel-statarb-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Unit tests, native benchmarks, and storage smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install native ZeroMQ headers
+        run: sudo apt-get update && sudo apt-get install -y libzmq3-dev pkg-config
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install project and optional test dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[ipc,storage,dev]"
+      - name: Check Python syntax
+        run: python -m compileall -q sentinel_runtime scripts tests
+      - name: Run Python unit and integration tests
+        run: python -m unittest discover -s tests -v
+      - name: Build native C++ targets
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build --parallel
+      - name: Run native C++ tests
+        run: ctest --test-dir build --output-on-failure
+      - name: Run repeatable 100K quote experiments
+        run: python scripts/run_experiments.py --ticks 100000 --repeats 3 --out artifacts
+      - name: Benchmark native C++ at 1M and 10M ticks after warm-up
+        run: |
+          bash scripts/run_cpp_benchmark.sh 1000000 artifacts/cpp_benchmark.json
+          bash scripts/run_cpp_benchmark.sh 10000000 artifacts/cpp_benchmark_10m.json
+      - name: Compare CPython-threaded and native C++ pipelines with semantic parity checks
+        run: python -u scripts/benchmark_gil_pipeline.py --ticks 1000000 --repeats 3 --out artifacts/gil_comparison_benchmark.json
+      - name: Measure lock-free shared-memory SPSC IPC after warm-up
+        run: ./build/cpp/sentinel_shm_spsc_ipc_benchmark --messages 200000 --warmup 20000 --capacity 64 --out artifacts/shm_spsc_ipc_benchmark.json
+      - name: Sweep shared-memory ring capacity with warm-up per setting
+        run: python -u scripts/run_shm_spsc_capacity_sweep.py --messages 200000 --warmup 20000 --out-dir artifacts
+      - name: Measure native one-way ZeroMQ IPC after warm-up
+        run: ./build/cpp/sentinel_zmq_ipc_oneway_benchmark --messages 20000 --warmup 2000 --out artifacts/cpp_zmq_ipc_oneway_benchmark.json
+      - name: Measure native ZeroMQ round-trip after warm-up
+        run: ./build/cpp/sentinel_zmq_ipc_benchmark --messages 20000 --warmup 2000 --out artifacts/cpp_zmq_ipc_benchmark.json
+      - name: Measure Python process-to-process ZeroMQ IPC
+        run: python scripts/benchmark_zmq_ipc.py --ticks 20000 --warmup 2000 --out artifacts/zmq_ipc_benchmark.json
+      - name: Smoke-test real DuckDB logging and read-back
+        run: python scripts/benchmark_storage.py --ticks 100000 --batch-size 10000 --out artifacts/storage_smoke.duckdb
+      - name: Compare DuckDB batch sizes with warm-up and read-back checks
+        run: python -u scripts/run_storage_batch_sweep.py --ticks 100000 --out-dir artifacts
+      - name: Generate diagrams and validate reports
+        run: python scripts/make_artifacts.py && python scripts/validate_reports.py
+      - name: Publish quick test reports and charts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinel-statarb-fast-reports
+          path: |
+            artifacts/*.json
+            artifacts/*.csv
+            docs/assets/*.svg
+          if-no-files-found: warn
+
+  storage-stress:
+    name: Full 10.1M-row DuckDB warm-up, write, and read-back
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 120
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install storage dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[storage]"
+      - name: Verify 10.1M rows in separate warm-up and measured runs
+        run: python -u scripts/benchmark_storage.py --ticks 10100000 --batch-size 10000 --out artifacts/stress_ticks.duckdb
+      - name: Regenerate current quote/risk report schema for full-scale validation
+        run: python scripts/run_experiments.py --ticks 100000 --repeats 3 --out artifacts
+      - name: Generate storage analysis and validate full-scale report
+        env:
+          SENTINEL_MIN_STORAGE_ROWS: "10000001"
+        run: python scripts/make_artifacts.py && python scripts/validate_reports.py
+      - name: Publish full-scale storage report and diagrams
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinel-statarb-10m-storage-report
+          path: |
+            artifacts/storage_benchmark.json
+            artifacts/experiment_summary.json
+            artifacts/experiment_metrics.csv
+            artifacts/oco_gap_sweep.csv
+            docs/assets/*.svg
+          if-no-files-found: warn
