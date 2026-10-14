@@ -627,7 +627,7 @@ This run validates the README commit above, including the 604-line report and al
 | Stop outcome and invalid input | One stop trigger; post-gap limit not marketable; zero invalid ticks |
 | Semantic parity | Pass |
 
-This run’s three measured C++ throughput repetitions were 32,399,548; 31,741,759; and 32,148,828 events/s in the preceding paired snapshot. For run #385783 specifically, the paired report records a median native throughput of 45,399,212 events/s and median CPython throughput of 147,680 events/s; the exact raw repetitions are in the artifact attached to the run. Keep each run's median separate from its raw-repeat table rather than mixing values between runs.
+The three measured paired C++ throughput repetitions for run #385783 were 45,399,212; 44,558,458; and 45,746,047 events/s. The corresponding CPython threaded repetitions were 145,112; 154,941; and 147,680 events/s. Their medians are 45,399,212 and 147,680 events/s respectively, yielding the reported 307.42× ratio. Keep these raw rates attached to run #385783 rather than mixing them with repetitions from earlier CI runs.
 
 ### Quote/risk results
 
