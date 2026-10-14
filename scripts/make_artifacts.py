@@ -325,9 +325,43 @@ def shared_memory_sweep_chart(report):
         t(60,560,f"Lowest observed p50: capacity {best}. Also check p99 and throughput; results depend on the host.",14,"#f3f6fb",700)]
     save("shm-spsc-capacity-sweep.svg",1200,600,parts)
 
+def post_crash_signal_suppression(d):
+    policies = d.get("policies", [])
+    if not policies or any("post_crash_window_accepted_signals" not in row for row in policies):
+        return
+    order = ["no debounce", "fixed debounce", "dynamic debounce"]
+    by_policy = {row["policy"]: row for row in policies}
+    rows = [by_policy[name] for name in order]
+    valid = max(int(row["post_crash_window_valid_quotes"]) for row in rows)
+    window = int(d["post_crash_signal_window_ticks"])
+    crash_bps = float(d["crash_gap_bps"])
+    colors = ["#df9c47", "#b39cf4", "#68dca7"]
+    s = ['<rect width="1200" height="590" fill="#101827"/>',
+         t(40,48,"FLASH CRASH / ENTRY-SIGNAL SUPPRESSION",16,"#72d9be",700),
+         t(40,91,f"First {window} sequence slots after a {crash_bps:g} bps synthetic gap",27,"#f3f6fb",700),
+         t(40,124,f"{valid} valid quotes reached the strategy gate; quote validation and protective risk checks are separate.",15,"#aab8ce")]
+    max_accepted = max(1, max(int(row["post_crash_window_accepted_signals"]) for row in rows))
+    for index, (row, color) in enumerate(zip(rows, colors)):
+        y = 170 + index * 112
+        accepted = int(row["post_crash_window_accepted_signals"])
+        held = int(row["post_crash_window_debounced_signals"])
+        s += [rect(40,y-25,1120,94,"#1a2638"),
+              t(60,y+5,row["policy"].upper(),16,color,700),
+              rect(300,y-5,520,26,"#2b384d","#2b384d",6),
+              rect(300,y-5,520*accepted/max_accepted,26,color,color,6),
+              t(300,y+40,f"Accepted entry signals: {accepted} / {valid}",16,"#f3f6fb",700),
+              t(830,y+2,f"Held by debounce: {held}",15,"#c8d2e1",700)]
+    dynamic = int(by_policy["dynamic debounce"]["post_crash_window_accepted_signals"])
+    no_gate = int(by_policy["no debounce"]["post_crash_window_accepted_signals"])
+    s += [rect(40,525,1120,42,"#202c3d","#40536c",8),
+          t(60,552,f"Dynamic debounce accepted {dynamic} vs {no_gate} without debounce in this window.",15,"#72d9be",700),
+          t(40,585,"Synthetic replay only: this measures entry-signal gating, not realized loss, fills, or profitability.",13,"#aab8ce")]
+    save("post-crash-signal-suppression.svg",1200,600,s)
+
 def main():
     d=json.loads((R/"artifacts"/"experiment_summary.json").read_text())
     architecture();flow();dashboard(d);charts(d)
+    post_crash_signal_suppression(d)
     data_quality(d);performance_comparison(d);experiment_pipeline()
     zmq_report=R/"artifacts"/"zmq_ipc_benchmark.json"
     if zmq_report.exists():latency("zmq-ipc-latency.svg",zmq_report,"zmq")
