@@ -30,7 +30,7 @@ def _percentile(values: list[int], p: float) -> float:
     ordered = sorted(values)
     return float(ordered[min(len(ordered)-1, int((len(ordered)-1)*p))])
 
-def _run_once(ticks: Iterator[Tick], policy: str, event_count: int) -> dict[str, float | int | str | bool]:
+def _run_once(ticks: Iterator[Tick], policy: str, event_count: int, base_tick_count: int) -> dict[str, float | int | str | bool]:
     if policy == "no debounce": gate = PassthroughDebouncer()
     elif policy == "fixed debounce": gate = DynamicDebouncer(100_000, 100_000, 1_000_000_000.0)
     elif policy == "dynamic debounce": gate = DynamicDebouncer(100_000, 2_000_000, 5.0)
@@ -39,6 +39,10 @@ def _run_once(ticks: Iterator[Tick], policy: str, event_count: int) -> dict[str,
     order = OCOStopLimit(100.0, "long", 25.0, 50.0, 5.0)
     engine.add_order("SIM-USD", order)
     duplicates = out_of_order = stale = future = accepted = debounced = stop_count = 0
+    crash_at_sequence = max(1, int(base_tick_count * 0.55))
+    post_crash_window_ticks = min(200, max(0, base_tick_count - crash_at_sequence))
+    post_crash_window_end = crash_at_sequence + post_crash_window_ticks
+    post_crash_window_valid_quotes = post_crash_window_accepted = post_crash_window_debounced = 0
     samples: list[int] = []
     sample_stride = max(1, event_count // 20_000)
     start = time.perf_counter_ns()
@@ -53,6 +57,11 @@ def _run_once(ticks: Iterator[Tick], policy: str, event_count: int) -> dict[str,
         elif result.reason == "future_quote": future += 1
         elif result.accepted_signal: accepted += 1
         else: debounced += 1
+        if crash_at_sequence <= tick.sequence < post_crash_window_end:
+            if result.reason in ("accepted", "debounced"):
+                post_crash_window_valid_quotes += 1
+                if result.accepted_signal: post_crash_window_accepted += 1
+                else: post_crash_window_debounced += 1
         if result.risk_event and result.risk_event.kind == "stop_triggered": stop_count += 1
     elapsed = time.perf_counter_ns() - start
     valid_signals = accepted + debounced
@@ -60,6 +69,10 @@ def _run_once(ticks: Iterator[Tick], policy: str, event_count: int) -> dict[str,
         "signal_reduction_pct":100.0*debounced/valid_signals if valid_signals else 0.0,
         "duplicate_sequences":duplicates,"out_of_order_timestamps":out_of_order,"stale_quotes":stale,"future_quotes":future,
         "stop_triggers":stop_count,"elapsed_ms":elapsed/1_000_000.0,"events_per_second":event_count/(elapsed/1_000_000_000.0),
+        "post_crash_window_start_sequence":crash_at_sequence,"post_crash_window_ticks":post_crash_window_ticks,
+        "post_crash_window_valid_quotes":post_crash_window_valid_quotes,
+        "post_crash_window_accepted_signals":post_crash_window_accepted,
+        "post_crash_window_debounced_signals":post_crash_window_debounced,
         "sampled_latency_p50_us":_percentile(samples,0.50)/1000.0,"sampled_latency_p95_us":_percentile(samples,0.95)/1000.0,
         "sampled_latency_p99_us":_percentile(samples,0.99)/1000.0,"stop_limit_marketable_at_crash":bool(order.limit_is_marketable(98.2))}
 
@@ -80,7 +93,7 @@ def run_experiments(count: int = 100_000, repeats: int = 3, seed: int = 20261011
     policies=("no debounce","fixed debounce","dynamic debounce")
     results=[]
     for policy in policies:
-        _run_once(iter_stream(count,seed),policy,event_count)
+        _run_once(iter_stream(count,seed),policy,event_count,count)
         runs=[_run_once(iter_stream(count,seed),policy,event_count) for _ in range(repeats)]
         chosen=dict(runs[len(runs)//2])
         for key in ("elapsed_ms","events_per_second","sampled_latency_p50_us","sampled_latency_p95_us","sampled_latency_p99_us"):
@@ -89,6 +102,7 @@ def run_experiments(count: int = 100_000, repeats: int = 3, seed: int = 20261011
     gap_rows=oco_gap_sweep()
     return {"project":"Sentinel StatArb","seed":seed,"base_tick_count":count,"input_event_count_with_duplicates":event_count,
         "timestamp_step_ns":TICK_STEP_NS,"crash_at_fraction":0.55,"crash_gap_bps":180.0,
+        "post_crash_signal_window_ticks":min(200,max(0,count-max(1,int(count*0.55))),
         "warmup_runs_per_policy":1,"measured_repeats_per_policy":repeats,"policies":results,"oco_gap_sweep":gap_rows,
         "notes":["Synthetic data only; rates and timings are machine-dependent.","First run is excluded from all reported timing medians.",
         "A 5 bps stop-limit offset can remain unfilled when a price gap exceeds the offset.",
