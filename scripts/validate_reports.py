@@ -76,6 +76,21 @@ def check_experiment() -> None:
             fail(f"{label}: throughput or latency quantiles are invalid")
         if int(row["stop_triggers"]) != 1 or bool(row["stop_limit_marketable_at_crash"]):
             fail(f"{label}: injected crash stop-limit result is unexpected")
+        post_ticks = int(row["post_crash_window_ticks"])
+        post_valid = int(row["post_crash_window_valid_quotes"])
+        post_accepted = int(row["post_crash_window_accepted_signals"])
+        post_debounced = int(row["post_crash_window_debounced_signals"])
+        if post_ticks != int(summary["post_crash_signal_window_ticks"]):
+            fail(f"{label}: post-crash observation window differs from summary")
+        if post_valid != post_accepted + post_debounced or post_valid > post_ticks:
+            fail(f"{label}: post-crash window quote/signal counts do not add up")
+    post_rows = {str(row["policy"]): row for row in rows}
+    no_debounce_entries = int(post_rows["no debounce"]["post_crash_window_accepted_signals"])
+    fixed_entries = int(post_rows["fixed debounce"]["post_crash_window_accepted_signals"])
+    dynamic_entries = int(post_rows["dynamic debounce"]["post_crash_window_accepted_signals"])
+    if int(summary["post_crash_signal_window_ticks"]) > 0 and not (
+            no_debounce_entries > fixed_entries > dynamic_entries):
+        fail("post-crash entry-signal window does not demonstrate dynamic debounce suppression")
     with (ARTIFACTS / "experiment_metrics.csv").open(newline="", encoding="utf-8") as f:
         csv_rows = list(csv.DictReader(f))
     if [row.get("policy") for row in csv_rows] != [row.get("policy") for row in rows]:
