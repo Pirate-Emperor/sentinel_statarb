@@ -182,7 +182,7 @@ This section intentionally records experiment inputs, measurement boundaries, ra
 |---|---|---|---|
 | HPC workflow | [Run #8](https://github.com/SpryzenHell/integrator/actions/runs/38569070387); source revision 4958b6dde6f8bda5dbbfc4b52b72adb2b64c7d43 | Success | Primary evidence for the named HPC host’s C++ throughput, GIL comparison, IPC, synthetic quote/risk checks and 10.1M-row DuckDB write/read-back. |
 | Hosted CI reference run #38571748960 (crash-window schema) | [Run #38571748960](https://github.com/SpryzenHell/sentinel_statarb/actions/runs/38571748960) | Success | Evidence for the new first-200-slot crash-window counters and report generation, plus the shown hosted benchmark values. |
-| HPC adaptive crash-window follow-up | [Run #9](https://github.com/SpryzenHell/integrator/actions/runs/38571496094) | Separate follow-up | Check its final status/artifact before attributing the post-crash entry-window measurement to the HPC host. |
+| HPC adaptive crash-window follow-up | [Run #9](https://github.com/SpryzenHell/integrator/actions/runs/38571496094) | Queued at last status check (2026-10-14 14:14 UTC) | Another A100 workflow, GraphRAG run #38570981068, was still in progress on the shared runner. HPC #8 remains the latest successful HPC result; do not attribute the post-crash window metric to HPC until #9 completes successfully. |
 | Hosted CI raw report artifact | [Run #38571748960 artifacts](https://github.com/SpryzenHell/sentinel_statarb/actions/runs/38571748960) | Published | Contains JSON/CSV output and diagrams for the run. |
 | Persisted HPC report tree | [integrator/main/artifacts/sentinel-statarb-hpc](https://github.com/SpryzenHell/integrator/tree/main/artifacts/sentinel-statarb-hpc) | Contains run #8 report files | Host metadata and JSON/CSV measures; the run-status file names the tested source revision. |
 
@@ -496,7 +496,7 @@ Key rules:
 The benchmark outputs are tied to source revision and machine provenance. Canceled/failed runs and incomplete storage read-back are not successful evidence. This ledger is intentionally explicit about both passing work and limitations so that resume claims can be defended in review.
 
 
-## N. Newest completed hosted-CI run — #38577287975
+## N. Hosted-CI run #38577287975 — supplemental measurements
 
 **Status:** success · **Commit tested:** 84fa009368c73d2dc0f1a6ab428668b038ca65e0 · **[Workflow page and artifacts](https://github.com/SpryzenHell/sentinel_statarb/actions/runs/38577287975)**.
 
@@ -600,4 +600,95 @@ All row-readback and report validator checks passed. This result is deliberately
 ### How this updates the evidence
 
 Run #385772 completes the regression pass for the expanded README and new snapshot. It does not replace the HPC evidence; it adds a newer hosted-CI sample with its own runner, throughput, and IPC distributions. The authoritative HPC figures remain run #8 until the dedicated HPC #9 post-crash follow-up completes successfully.
+
+
+
+## O. Hosted-CI run #38578317893 — documentation-commit verification snapshot
+
+**Outcome: success** · **Commit tested:** 0a03826bfa15381543bf48e5bcb246dd3b74a3c2 · [Run #38578317893](https://github.com/SpryzenHell/sentinel_statarb/actions/runs/38578317893).
+
+This run validates the README commit above, including the 604-line report and all referenced figures. The regular CI job passed **25 Python tests**, **4/4 native CTest tests**, paired-benchmark semantic checks, IPC payload/sequence checks, the batch sweep, SVG generation and report validation. The separate full-scale storage job passed too. These are the exact measurements for this run; they are recorded separately because host scheduling and throughput vary across CI invocations.
+
+### C++ and paired pipeline
+
+| Metric | Run #38578317893 |
+|---|---:|
+| Native C++ 1M throughput | 44,612,616 events/s |
+| Native C++ 1M sampled p50/p95/p99 | 0.040 / 0.070 / 0.071 μs |
+| Native C++ 10M throughput | 47,072,961 events/s |
+| Native C++ 10M sampled p50/p95/p99 | 0.050 / 0.070 / 0.070 μs |
+| Native invalid ticks | 0 |
+| Paired C++ median throughput | 45,399,212 events/s |
+| Paired CPython threaded median throughput | 147,680 events/s |
+| Paired measured throughput ratio | **307.42×** |
+| Paired native sampled p50/p95/p99 | 0.040 / 0.070 / 0.070 μs |
+| Paired Python sampled p50/p95/p99 | 1.122 / 2.083 / 2.584 μs |
+| Accepted / held signals in paired pipeline | 99,980 / 900,020 for both |
+| Stop outcome and invalid input | One stop trigger; post-gap limit not marketable; zero invalid ticks |
+| Semantic parity | Pass |
+
+This run’s three measured C++ throughput repetitions were 32,399,548; 31,741,759; and 32,148,828 events/s in the preceding paired snapshot. For run #385783 specifically, the paired report records a median native throughput of 45,399,212 events/s and median CPython throughput of 147,680 events/s; the exact raw repetitions are in the artifact attached to the run. Keep each run's median separate from its raw-repeat table rather than mixing values between runs.
+
+### Quote/risk results
+
+| Policy | Full-stream accepted | Held back | Throughput | Sampled p50/p95/p99 |
+|---|---:|---:|---:|---:|
+| No debounce | 99,427 | 0 | 355,821 events/s | 1.282 / 1.382 / 1.472 μs |
+| Fixed debounce | 9,953 | 89,474 | 282,113 events/s | 2.003 / 2.163 / 2.283 μs |
+| Dynamic debounce | 9,934 | 89,493 | 281,556 events/s | 2.003 / 2.173 / 2.303 μs |
+
+In the first 200 crash-window sequence slots, 199 quotes passed quality checks. No debounce accepted 199 entries, fixed debounce accepted 20, and dynamic debounce accepted 0. All policies recorded one protective stop trigger and a not-marketable stop-limit after the 180 bps gap. The 24-case OCO gap matrix passed report validation.
+
+### Shared-memory IPC in run #385783
+
+Standalone capacity 64:
+
+| Metric | Result |
+|---|---:|
+| p50 | 4.762 μs |
+| p95 | 5.853 μs |
+| p99 | 8.107 μs |
+| Maximum observed | 23.880 μs |
+| Throughput | 11,938,291 messages/s |
+| Measured / warm-up messages | 200,000 / 20,000 |
+| Lock-free atomics | Yes |
+| Sequence / timestamp errors | 0 / 0 |
+
+Capacity sweep:
+
+| Capacity | p50 | p95 | p99 | Throughput |
+|---:|---:|---:|---:|---:|
+| 16 | 0.912 μs | 1.153 μs | 2.283 μs | 11.424M msg/s |
+| 64 | 4.642 μs | 5.914 μs | 6.816 μs | 11.862M msg/s |
+| 256 | 20.886 μs | 22.668 μs | 32.322 μs | 11.843M msg/s |
+| 1,024 | 82.536 μs | 92.741 μs | 95.124 μs | 12.189M msg/s |
+
+All capacities had lock-free atomics and zero sequence/timestamp errors. Capacity 16 gave the lowest tail latency; capacity 1,024 had the highest throughput in this run and a much slower p99.
+
+### ZeroMQ in run #385783
+
+| Path | p50 | p95 | p99 | Notes |
+|---|---:|---:|---:|---|
+| Native C++ one-way | 39.753 μs | 53.809 μs | 84.404 μs | 20K messages; payload check passed |
+| Native C++ ACK RTT | 79.467 μs | — | 138.935 μs | Transport is not lock-free |
+| Native C++ request/reply RTT | 77.304 μs | 111.634 μs | 137.443 μs | 12,295 RTT/s |
+| Python process-to-process RTT | 85.356 μs | 118.886 μs | 142.260 μs | Payload integrity passed |
+
+All remain above the sub-10 μs one-way target. They are separate from the shared-memory SPSC figures.
+
+### Storage in run #385783
+
+| Test | Elapsed | Throughput | Rows read back | Invalid rows |
+|---|---:|---:|---:|---:|
+| 100K smoke test | 712.316 ms | 140,387 rows/s | 100,000 | 0 |
+| 100K batch size 1K | 780.258 ms | 128,163 rows/s | 100,000 | 0 |
+| 100K batch size 10K | 372.298 ms | 268,602 rows/s | 100,000 | 0 |
+| 100K batch size 50K | 297.679 ms | 335,932 rows/s | 100,000 | 0 |
+| 10.1M full measured pass | 39,610.724 ms | 254,981 rows/s | 10,100,000 | 0 |
+
+For the full stress run, the separate warm-up pass also wrote and read back 10,100,000 unique rows; measured pass rows requested/written/read back were all 10,100,000, with unique sequence range 0–10,099,999 and database size 136,065,024 bytes. Full-scale validator checks passed. The result is host/run-specific and is distinct from the 36.551-second storage pass in hosted run #385772, the 34.939-second pass in #385717, and the 41.789-second HPC run #8.
+
+## P. Current HPC follow-up status
+
+At the latest status check on 2026-10-14 14:14 UTC, dedicated integrator-1 run #9 ([Sentinel StatArb HPC CPU Validation](https://github.com/SpryzenHell/integrator/actions/runs/38571496094)) was still queued. The integrator Actions API showed [GraphRAG A100 Security and Retrieval Evaluation run #38570981068](https://github.com/SpryzenHell/integrator/actions/runs/38570981068) in progress on the shared A100 runner. This is a queue/resource contention status, not a failed Sentinel StatArb test. Until run #9 has a final success artifact, HPC #8 remains the latest verified HPC run and the new 200-slot post-crash result remains hosted-CI-verified rather than HPC-verified.
 
