@@ -94,7 +94,7 @@ def run_experiments(count: int = 100_000, repeats: int = 3, seed: int = 20261011
     results=[]
     for policy in policies:
         _run_once(iter_stream(count,seed),policy,event_count,count)
-        runs=[_run_once(iter_stream(count,seed),policy,event_count) for _ in range(repeats)]
+        runs=[_run_once(iter_stream(count,seed),policy,event_count,count) for _ in range(repeats)]
         chosen=dict(runs[len(runs)//2])
         for key in ("elapsed_ms","events_per_second","sampled_latency_p50_us","sampled_latency_p95_us","sampled_latency_p99_us"):
             chosen[key]=statistics.median(float(run[key]) for run in runs)
