@@ -8,7 +8,7 @@
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
     <dc:title>signal gating counts</dc:title>
-    <dc:date>2026-10-16T15:32:52.404704</dc:date>
+    <dc:date>2026-10-16T15:33:59.076206</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -200,49 +200,28 @@ L 506.794688 260.198739
 " style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
    <g id="text_12">
-    <text style="font-weight: 600; font-size: 8.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="266.0706" y="71.807151" transform="rotate(-0 266.0706 71.807151)">99,427</text>
+    <text style="font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #627286" x="502.715753" y="39.779134" transform="rotate(-0 502.715753 39.779134)">Blue = accepted · Orange = debounced</text>
    </g>
    <g id="text_13">
-    <text style="font-weight: 600; font-size: 8.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="115.635362" y="146.846362" transform="rotate(-0 115.635362 146.846362)">9,953</text>
+    <text style="font-weight: 600; font-size: 8.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="266.0706" y="71.807151" transform="rotate(-0 266.0706 71.807151)">99,427</text>
    </g>
    <g id="text_14">
-    <text style="font-weight: 600; font-size: 8.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="282.804868" y="146.846362" transform="rotate(-0 282.804868 146.846362)">89,474</text>
+    <text style="font-weight: 600; font-size: 8.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="115.635362" y="146.846362" transform="rotate(-0 115.635362 146.846362)">9,953</text>
    </g>
    <g id="text_15">
-    <text style="font-weight: 600; font-size: 8.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="115.603417" y="221.885573" transform="rotate(-0 115.603417 221.885573)">9,934</text>
+    <text style="font-weight: 600; font-size: 8.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="282.804868" y="146.846362" transform="rotate(-0 282.804868 146.846362)">89,474</text>
    </g>
    <g id="text_16">
-    <text style="font-weight: 600; font-size: 8.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="282.772923" y="221.885573" transform="rotate(-0 282.772923 221.885573)">89,493</text>
+    <text style="font-weight: 600; font-size: 8.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="115.603417" y="221.885573" transform="rotate(-0 115.603417 221.885573)">9,934</text>
    </g>
    <g id="text_17">
+    <text style="font-weight: 600; font-size: 8.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="282.772923" y="221.885573" transform="rotate(-0 282.772923 221.885573)">89,493</text>
+   </g>
+   <g id="text_18">
     <text style="font-weight: 600; font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #243447" x="98.901094" y="17.077969" transform="rotate(-0 98.901094 17.077969)">Signal gating by policy</text>
    </g>
-   <g id="legend_1">
-    <g id="patch_11">
-     <path d="M 318.213438 248.796395 
-L 338.213438 248.796395 
-L 338.213438 241.796395 
-L 318.213438 241.796395 
-z
-" style="fill: #3568a8"/>
-    </g>
-    <g id="text_18">
-     <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start" x="346.213438" y="248.796395" transform="rotate(-0 346.213438 248.796395)">Accepted</text>
-    </g>
-    <g id="patch_12">
-     <path d="M 412.799376 248.796395 
-L 432.799376 248.796395 
-L 432.799376 241.796395 
-L 412.799376 241.796395 
-z
-" style="fill: #d97736"/>
-    </g>
-    <g id="text_19">
-     <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start" x="440.799376" y="248.796395" transform="rotate(-0 440.799376 248.796395)">Debounced</text>
-    </g>
-   </g>
   </g>
-  <g id="text_20">
+  <g id="text_19">
    <text style="font-size: 7.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #627286" x="9.38376" y="296.51976" transform="rotate(-0 9.38376 296.51976)">Synthetic experiment · Source: artifacts/experiment_summary.json · Machine-dependent measurements</text>
   </g>
  </g>
