@@ -45,8 +45,18 @@ def annotate_bars(ax, bars, fmt, horizontal: bool = False, pad: float = 0.02) ->
             ax.text(bar.get_x()+bar.get_width()/2,value+span*pad,fmt(value),va="bottom",ha="center",color=PALETTE["text"],fontsize=8.5)
 
 def save(fig, filename: str, source: str) -> None:
-    fig.text(0.01,-0.015,f"Synthetic experiment · Source: {source} · Machine-dependent measurements",color=PALETTE["muted"],fontsize=7.5)
-    fig.savefig(OUT/filename,format="svg",bbox_inches="tight",metadata={"Title":filename.replace("-"," ").replace(".svg",""),"Creator":"Sentinel StatArb Matplotlib plot generator"})
+    # Use only the plot itself: no footnotes, decorative banners, or generated-image styling.
+    # A fixed SVG metadata set also avoids nondeterministic timestamps in diffs.
+    fig.savefig(
+        OUT / filename,
+        format="svg",
+        bbox_inches="tight",
+        metadata={
+            "Title": filename.replace("-", " ").replace(".svg", ""),
+            "Creator": "Matplotlib",
+            "Date": None,
+        },
+    )
     plt.close(fig)
 
 def make_policy_throughput(summary: dict) -> None:
