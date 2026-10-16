@@ -76,7 +76,8 @@ def make_signal_counts(summary: dict) -> None:
     fig,ax=plt.subplots(figsize=(7.2,4.0),layout="constrained"); y=np.arange(len(rows))
     ax.barh(y,accepted,color=PALETTE["blue"],label="Accepted"); ax.barh(y,held,left=accepted,color=PALETTE["orange"],label="Debounced")
     ax.set_yticks(y,labels); ax.invert_yaxis(); ax.set_xlabel("Signal count")
-    ax.set_title("Signal gating by policy",loc="left",color=PALETTE["text"],pad=12); ax.legend(frameon=False,ncol=2,loc="lower right")
+    ax.set_title("Signal gating by policy",loc="left",color=PALETTE["text"],pad=12)
+    ax.text(0.99,0.98,"Blue = accepted · Orange = debounced",transform=ax.transAxes,ha="right",va="top",fontsize=8,color=PALETTE["muted"])
     ax.set_xlim(0,max(accepted+held)*1.22); style_axes(ax,horizontal=True)
     for i,(a,h) in enumerate(zip(accepted,held)):
         ax.text(a/2,i,f"{a:,}",color="white",va="center",ha="center",fontsize=8.5,fontweight="semibold")
