@@ -101,7 +101,7 @@ GitHub Actions runs the unit tests, native C++ queue tests, 100K quote experimen
 
 ## Benchmark plots
 
-These eight conventional Matplotlib charts are generated from the checked-in experiment JSON/CSV reports. They show synthetic test behavior; latency and throughput are machine-dependent. Stop-limit marketability is a price condition, not confirmation of an actual fill.
+Eight Matplotlib charts generated directly from the checked-in experiment reports. Stop-limit marketability is a price condition, not a confirmed fill.
 
 <p align="center">
   <img src="docs/assets/policy-throughput.svg" width="48%" alt="Quote-policy throughput" />
