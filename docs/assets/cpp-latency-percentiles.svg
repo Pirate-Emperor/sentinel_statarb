@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="526.79952pt" height="290.905518pt" viewBox="0 0 526.79952 290.905518" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <title>cpp latency percentiles</title>
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title>cpp latency percentiles</dc:title>
+    <dc:date>2026-10-16T15:32:52.886830</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Sentinel StatArb Matplotlib plot generator</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 290.905518 
+L 526.79952 290.905518 
+L 526.79952 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 47.239844 259.79952 
+L 519.59952 259.79952 
+L 519.59952 29.077969 
+L 47.239844 29.077969 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1"/>
+     <g id="text_1">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #627286" x="111.652527" y="272.637411" transform="rotate(-0 111.652527 272.637411)">P50</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_2"/>
+     <g id="text_2">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #627286" x="283.419682" y="272.637411" transform="rotate(-0 283.419682 272.637411)">P95</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_3"/>
+     <g id="text_3">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #627286" x="455.186837" y="272.637411" transform="rotate(-0 455.186837 272.637411)">P99</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_4">
+      <path d="M 47.239844 259.79952 
+L 519.59952 259.79952 
+" clip-path="url(#p5b0fe802d6)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_5"/>
+     <g id="text_4">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #627286" x="41.239844" y="263.218465" transform="rotate(-0 41.239844 263.218465)">0.00</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_6">
+      <path d="M 47.239844 224.028737 
+L 519.59952 224.028737 
+" clip-path="url(#p5b0fe802d6)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_7"/>
+     <g id="text_5">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #627286" x="41.239844" y="227.447682" transform="rotate(-0 41.239844 227.447682)">0.01</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_8">
+      <path d="M 47.239844 188.257954 
+L 519.59952 188.257954 
+" clip-path="url(#p5b0fe802d6)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_9"/>
+     <g id="text_6">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #627286" x="41.239844" y="191.676899" transform="rotate(-0 41.239844 191.676899)">0.02</text>
+     </g>
+    </g>
+    <g id="ytick_4">
+     <g id="line2d_10">
+      <path d="M 47.239844 152.487171 
+L 519.59952 152.487171 
+" clip-path="url(#p5b0fe802d6)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_11"/>
+     <g id="text_7">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #627286" x="41.239844" y="155.906116" transform="rotate(-0 41.239844 155.906116)">0.03</text>
+     </g>
+    </g>
+    <g id="ytick_5">
+     <g id="line2d_12">
+      <path d="M 47.239844 116.716387 
+L 519.59952 116.716387 
+" clip-path="url(#p5b0fe802d6)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_13"/>
+     <g id="text_8">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #627286" x="41.239844" y="120.135333" transform="rotate(-0 41.239844 120.135333)">0.04</text>
+     </g>
+    </g>
+    <g id="ytick_6">
+     <g id="line2d_14">
+      <path d="M 47.239844 80.945604 
+L 519.59952 80.945604 
+" clip-path="url(#p5b0fe802d6)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_15"/>
+     <g id="text_9">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #627286" x="41.239844" y="84.36455" transform="rotate(-0 41.239844 84.36455)">0.05</text>
+     </g>
+    </g>
+    <g id="ytick_7">
+     <g id="line2d_16">
+      <path d="M 47.239844 45.174821 
+L 519.59952 45.174821 
+" clip-path="url(#p5b0fe802d6)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_17"/>
+     <g id="text_10">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #627286" x="41.239844" y="48.593766" transform="rotate(-0 41.239844 48.593766)">0.06</text>
+     </g>
+    </g>
+    <g id="text_11">
+     <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle" x="14.798438" y="144.438744" transform="rotate(-90 14.798438 144.438744)">Sampled processing latency (μs)</text>
+    </g>
+   </g>
+   <g id="patch_3">
+    <path d="M 68.710738 259.79952 
+L 154.594316 259.79952 
+L 154.594316 152.487171 
+L 68.710738 152.487171 
+z
+" clip-path="url(#p5b0fe802d6)" style="fill: #3568a8"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 240.477893 259.79952 
+L 326.361471 259.79952 
+L 326.361471 134.601779 
+L 240.477893 134.601779 
+z
+" clip-path="url(#p5b0fe802d6)" style="fill: #19877d"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 412.245048 259.79952 
+L 498.128626 259.79952 
+L 498.128626 105.985152 
+L 412.245048 105.985152 
+z
+" clip-path="url(#p5b0fe802d6)" style="fill: #d97736"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 47.239844 259.79952 
+L 47.239844 29.077969 
+" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 47.239844 259.79952 
+L 519.59952 259.79952 
+" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 8.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #243447" x="111.652527" y="145.830747" transform="rotate(-0 111.652527 145.830747)">0.030 μs</text>
+   </g>
+   <g id="text_13">
+    <text style="font-size: 8.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #243447" x="283.419682" y="127.945356" transform="rotate(-0 283.419682 127.945356)">0.035 μs</text>
+   </g>
+   <g id="text_14">
+    <text style="font-size: 8.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #243447" x="455.186837" y="99.328729" transform="rotate(-0 455.186837 99.328729)">0.043 μs</text>
+   </g>
+   <g id="text_15">
+    <text style="font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #627286" x="514.875923" y="44.385581" transform="rotate(-0 514.875923 44.385581)">19,980 samples · hot path only</text>
+   </g>
+   <g id="text_16">
+    <text style="font-weight: 600; font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #243447" x="47.239844" y="17.077969" transform="rotate(-0 47.239844 17.077969)">Native C++ sampled latency</text>
+   </g>
+  </g>
+  <g id="text_17">
+   <text style="font-size: 7.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #627286" x="9.38376" y="281.90376" transform="rotate(-0 9.38376 281.90376)">Synthetic experiment · Source: artifacts/cpp_benchmark_10m.json · Machine-dependent measurements</text>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p5b0fe802d6">
+   <rect x="47.239844" y="29.077969" width="472.359676" height="230.721551"/>
+  </clipPath>
+ </defs>
+</svg>
