@@ -8,7 +8,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import ListedColormap
-from matplotlib.patches import Rectangle
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "artifacts"
@@ -148,98 +147,16 @@ def make_zmq_latency() -> None:
     ax.text(0.99,0.96,f"Max observed: {float(row['max_round_trip_us']):,.1f} μs · {int(row['measured_messages']):,} messages",transform=ax.transAxes,ha="right",va="top",fontsize=8,color=PALETTE["muted"])
     save(fig,"zmq-round-trip-latency.svg")
 
-def make_architecture() -> None:
-    """Draw the runtime path as a compact, ordinary Matplotlib flow diagram."""
-    fig, ax = plt.subplots(figsize=(14.5, 6.2), layout="constrained")
-    ax.set_xlim(0, 14.5)
-    ax.set_ylim(0, 6.2)
-    ax.axis("off")
-
-    ink = "#243447"
-    muted = "#627286"
-    border = "#bcc7d2"
-    blue = "#3568a8"
-    teal = "#19877d"
-    orange = "#d97736"
-
-    ax.text(0.25, 5.85, "System architecture", fontsize=16, fontweight="bold",
-            color=ink, ha="left", va="center")
-    ax.text(0.25, 5.48,
-            "Validated quotes feed entry-signal logic and independent protective-risk checks.",
-            fontsize=9.5, color=muted, ha="left", va="center")
-
-    def box(x, y, w, h, title, detail, accent):
-        ax.add_patch(Rectangle((x, y), w, h, facecolor="white",
-                               edgecolor=border, linewidth=1.0, zorder=2))
-        ax.plot([x + 0.03, x + w - 0.03], [y + h - 0.035, y + h - 0.035],
-                color=accent, linewidth=2.2, solid_capstyle="butt", zorder=3)
-        ax.text(x + 0.13, y + h - 0.31, title, fontsize=10.5,
-                fontweight="bold", color=ink, ha="left", va="center", zorder=4)
-        ax.text(x + 0.13, y + h - 0.62, detail, fontsize=8.5,
-                color=muted, ha="left", va="top", linespacing=1.3, zorder=4)
-
-    def arrow(start, end):
-        ax.annotate("", xy=end, xytext=start,
-                    arrowprops={"arrowstyle": "-|>", "color": muted,
-                                "linewidth": 1.15, "mutation_scale": 10},
-                    zorder=1)
-
-    # Common quote-processing path.
-    y, h = 3.55, 1.18
-    box(0.25, y, 2.0, h, "Quote stream",
-        "Sequence, bid/ask\nEvent timestamp", "#8795a5")
-    box(2.65, y, 2.15, h, "Integrity gate",
-        "Sequence and time order\nQuote freshness", blue)
-    box(5.2, y, 2.15, h, "Event engine",
-        "Bounded queue\nC++ SPSC / Python queue", blue)
-    arrow((2.25, y + h / 2), (2.65, y + h / 2))
-    arrow((4.8, y + h / 2), (5.2, y + h / 2))
-
-    # The event engine fans out to two separate responsibilities.
-    trunk_x = 7.95
-    engine_mid = y + h / 2
-    signal_y, branch_h = 4.05, 1.12
-    risk_y = 1.92
-    signal_mid = signal_y + branch_h / 2
-    risk_mid = risk_y + branch_h / 2
-    ax.plot([7.35, trunk_x], [engine_mid, engine_mid], color=muted, linewidth=1.15, zorder=1)
-    ax.plot([trunk_x, trunk_x], [risk_mid, signal_mid], color=muted, linewidth=1.15, zorder=1)
-
-    box(8.65, signal_y, 1.95, branch_h, "Signal policy",
-        "Debounce entry\nsignals", teal)
-    box(10.98, signal_y, 3.15, branch_h, "Strategy output",
-        "Accept or suppress\nan entry signal", teal)
-    arrow((trunk_x, signal_mid), (8.65, signal_mid))
-    arrow((10.60, signal_mid), (10.98, signal_mid))
-
-    box(8.65, risk_y, 1.95, branch_h, "Risk checks",
-        "OCO stop / target\nEach valid quote", orange)
-    box(10.98, risk_y, 3.15, branch_h, "Protective action",
-        "One-shot stop\nor target action", orange)
-    arrow((trunk_x, risk_mid), (8.65, risk_mid))
-    arrow((10.60, risk_mid), (10.98, risk_mid))
-
-    ax.text(0.25, 1.38, "ADDITIONAL SUBSYSTEMS", fontsize=8.5,
-            fontweight="bold", color=muted, ha="left", va="center")
-    subsystem_y, subsystem_h = 0.30, 0.78
-    box(0.25, subsystem_y, 4.15, subsystem_h, "Shared-memory SPSC",
-        "Process-shared ring buffer", blue)
-    box(5.15, subsystem_y, 4.15, subsystem_h, "ZeroMQ",
-        "IPC / TCP transport", teal)
-    box(10.05, subsystem_y, 4.08, subsystem_h, "DuckDB writer",
-        "Batched async logging and read-back", orange)
-
-    save(fig, "architecture.svg")
-
 def main() -> int:
+    # Remove the retired diagram from existing checkouts; this script now generates plots only.
+    (OUT / "architecture.svg").unlink(missing_ok=True)
     summary=read_json("experiment_summary.json")
     make_policy_throughput(summary); make_policy_latency(summary); make_signal_counts(summary)
-    make_quality_faults(summary); make_gap_boundary(summary); make_cpp_throughput(); make_cpp_latency(); make_zmq_latency(); make_architecture()
+    make_quality_faults(summary); make_gap_boundary(summary); make_cpp_throughput(); make_cpp_latency(); make_zmq_latency()
     expected={"policy-throughput.svg","policy-latency-percentiles.svg","signal-gating-counts.svg","quote-quality-faults.svg","stop-limit-gap-boundary.svg","cpp-throughput.svg","cpp-latency-percentiles.svg","zmq-round-trip-latency.svg"}
     missing=sorted(name for name in expected if not (OUT/name).is_file())
     if missing: raise RuntimeError(f"Plot generation incomplete: missing {missing}")
-    if not (OUT / "architecture.svg").is_file(): raise RuntimeError("Architecture diagram generation failed")
-    print(f"Generated {len(expected)} Matplotlib SVG plots and architecture.svg in {OUT}")
+    print(f"Generated {len(expected)} Matplotlib SVG plots in {OUT}")
     for name in sorted(expected): print(f"  {name}")
     return 0
 

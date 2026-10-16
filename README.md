@@ -16,11 +16,11 @@ All examples use synthetic data. The project does not connect to a broker or pla
 - **ZeroMQ bridge:** Sends validated tick messages over IPC or TCP. Native C++ tests measure one-way and round-trip latency separately. ZeroMQ itself is not lock-free, and the saved run did not meet the 10 μs one-way target.
 - **Lock-free shared-memory IPC:** A native SPSC ring passes messages between two processes using shared memory. The benchmark checks whether the atomic counters are actually lock-free on the host, verifies sequence order, and measures one-way handoff time.
 - **DuckDB writer:** Uses a bounded queue and a separate writer thread. Pandas DataFrame batches reduce per-row insert overhead; read-back checks verify every sequence and quote.
-- **Repeatable experiments:** Save CSV/JSON measurements; a simple architecture SVG and eight Matplotlib plots summarize throughput, latency, quote quality, signal gating, and stop-limit boundaries.
+- **Repeatable experiments:** Save CSV/JSON measurements; eight Matplotlib plots summarize throughput, latency, quote quality, signal gating, and stop-limit boundaries.
 
-## System architecture
+## System flow
 
-![Sentinel StatArb event path and measured subsystems](docs/assets/architecture.svg)
+Validated quotes pass sequence, timestamp-order, and freshness checks before entering the bounded event-processing queue. Entry signals then pass through the debounce policy to strategy output, while protective OCO stop/target checks independently run for every valid quote. Supporting subsystems provide shared-memory SPSC handoff, ZeroMQ IPC/TCP transport, and batched DuckDB storage with read-back validation.
 
 ## Quick start
 
@@ -156,7 +156,7 @@ Full run-level details, raw repeats, all capacity settings, quote/risk counts, t
 - `tests/`: Python unit and integration tests
 - `scripts/`: benchmarks, report generation, and report validation
 - `artifacts/`: synthetic experiment results in CSV/JSON format
-- `docs/assets/`: simple architecture SVG plus eight reproducible Matplotlib plot SVGs
+- `docs/assets/`: eight reproducible Matplotlib plot SVGs
 
 ## Author and license
 
@@ -478,7 +478,6 @@ Database binaries are local outputs; commit the source, scripts and small JSON/C
 
 ## K. Figures and report index
 
-- [System path and subsystem boundaries](docs/assets/architecture.svg)
 - [Quote-policy throughput](docs/assets/policy-throughput.svg)
 - [Stop-limit price-gap boundary](docs/assets/stop-limit-gap-boundary.svg)
 - [Detailed methods and historical reference measurements](docs/EXPERIMENTS.md)
@@ -871,7 +870,7 @@ The latest hosted-CI batch-size sweep remains separate from HPC results. In host
 - [Run #9 persisted machine-readable files on `integrator/main`](https://github.com/SpryzenHell/integrator/tree/main/artifacts/sentinel-statarb-hpc)
 - [`run-status.txt`](https://github.com/SpryzenHell/integrator/blob/main/artifacts/sentinel-statarb-hpc/run-status.txt) names the success state and tested source revision.
 - [Paired benchmark implementation](scripts/benchmark_gil_pipeline.py), [post-crash report generation](sentinel_runtime/experiments.py), [report validation](scripts/validate_reports.py), and [tests](tests/test_engine.py).
-- [All project figures](docs/assets/) include the simple architecture SVG and eight Matplotlib plots; the plots visualise JSON/CSV results and are not separate timing measurements.
+- [All project figures](docs/assets/) are eight Matplotlib plots that visualise JSON/CSV results; they are not separate timing measurements.
 
 ## R. Final evidence checklist and interpretation
 

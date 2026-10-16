@@ -403,10 +403,10 @@ def check_svgs_and_readme() -> None:
         "stop-limit-gap-boundary.svg", "cpp-throughput.svg",
         "cpp-latency-percentiles.svg", "zmq-round-trip-latency.svg",
     }
-    expected_assets = {"architecture.svg", *plot_names}
+    expected_assets = plot_names
     actual_assets = {path.name for path in svg_paths}
     if actual_assets != expected_assets:
-        fail(f"expected architecture.svg plus eight Matplotlib plots; found {sorted(actual_assets)}")
+        fail(f"expected exactly eight Matplotlib plots and no architecture diagram; found {sorted(actual_assets)}")
     ns = "{http://www.w3.org/2000/svg}"
     for path in svg_paths:
         try:
@@ -440,7 +440,7 @@ def check_svgs_and_readme() -> None:
     licenses = list(ROOT.glob("LICENSE*"))
     if [p.name for p in licenses] != ["LICENSE"]:
         fail("keep one project LICENSE file; separate, unused license copies should not remain")
-    print(f"PASS SVG layout and README links: {len(svg_paths)} files (architecture + eight plots)")
+    print(f"PASS SVG layout and README links: {len(svg_paths)} plot files")
 
 
 def check_author() -> None:
