@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="526.798822pt" height="305.521518pt" viewBox="0 0 526.798822 305.521518" xmlns="http://www.w3.org/2000/svg" version="1.1">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="526.798822pt" height="296.39952pt" viewBox="0 0 526.798822 296.39952" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <title>signal gating counts</title>
  <metadata>
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
     <dc:title>signal gating counts</dc:title>
-    <dc:date>2026-10-16T15:33:59.076206</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
-      <dc:title>Sentinel StatArb Matplotlib plot generator</dc:title>
+      <dc:title>Matplotlib</dc:title>
      </cc:Agent>
     </dc:creator>
    </cc:Work>
@@ -23,8 +22,8 @@
  </defs>
  <g id="figure_1">
   <g id="patch_1">
-   <path d="M 0 305.521518 
-L 526.798822 305.521518 
+   <path d="M 0 296.39952 
+L 526.798822 296.39952 
 L 526.798822 0 
 L 0 0 
 z
@@ -44,7 +43,7 @@ z
      <g id="line2d_1">
       <path d="M 98.901094 260.198739 
 L 98.901094 29.077969 
-" clip-path="url(#pfd1687db20)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#p8ccf9203ff)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_2"/>
      <g id="text_1">
@@ -55,7 +54,7 @@ L 98.901094 29.077969
      <g id="line2d_3">
       <path d="M 166.154257 260.198739 
 L 166.154257 29.077969 
-" clip-path="url(#pfd1687db20)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#p8ccf9203ff)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_4"/>
      <g id="text_2">
@@ -66,7 +65,7 @@ L 166.154257 29.077969
      <g id="line2d_5">
       <path d="M 233.40742 260.198739 
 L 233.40742 29.077969 
-" clip-path="url(#pfd1687db20)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#p8ccf9203ff)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_6"/>
      <g id="text_3">
@@ -77,7 +76,7 @@ L 233.40742 29.077969
      <g id="line2d_7">
       <path d="M 300.660583 260.198739 
 L 300.660583 29.077969 
-" clip-path="url(#pfd1687db20)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#p8ccf9203ff)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_8"/>
      <g id="text_4">
@@ -88,7 +87,7 @@ L 300.660583 29.077969
      <g id="line2d_9">
       <path d="M 367.913746 260.198739 
 L 367.913746 29.077969 
-" clip-path="url(#pfd1687db20)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#p8ccf9203ff)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_10"/>
      <g id="text_5">
@@ -99,7 +98,7 @@ L 367.913746 29.077969
      <g id="line2d_11">
       <path d="M 435.166909 260.198739 
 L 435.166909 29.077969 
-" clip-path="url(#pfd1687db20)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#p8ccf9203ff)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_12"/>
      <g id="text_6">
@@ -110,7 +109,7 @@ L 435.166909 29.077969
      <g id="line2d_13">
       <path d="M 502.420072 260.198739 
 L 502.420072 29.077969 
-" clip-path="url(#pfd1687db20)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#p8ccf9203ff)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_14"/>
      <g id="text_7">
@@ -147,7 +146,7 @@ L 433.240106 39.583458
 L 433.240106 99.614827 
 L 98.901094 99.614827 
 z
-" clip-path="url(#pfd1687db20)" style="fill: #3568a8"/>
+" clip-path="url(#p8ccf9203ff)" style="fill: #3568a8"/>
    </g>
    <g id="patch_4">
     <path d="M 98.901094 114.622669 
@@ -155,7 +154,7 @@ L 132.36963 114.622669
 L 132.36963 174.654038 
 L 98.901094 174.654038 
 z
-" clip-path="url(#pfd1687db20)" style="fill: #3568a8"/>
+" clip-path="url(#p8ccf9203ff)" style="fill: #3568a8"/>
    </g>
    <g id="patch_5">
     <path d="M 98.901094 189.66188 
@@ -163,7 +162,7 @@ L 132.30574 189.66188
 L 132.30574 249.693249 
 L 98.901094 249.693249 
 z
-" clip-path="url(#pfd1687db20)" style="fill: #3568a8"/>
+" clip-path="url(#p8ccf9203ff)" style="fill: #3568a8"/>
    </g>
    <g id="patch_6">
     <path d="M 433.240106 39.583458 
@@ -171,7 +170,7 @@ L 433.240106 39.583458
 L 433.240106 99.614827 
 L 433.240106 99.614827 
 z
-" clip-path="url(#pfd1687db20)" style="fill: #d97736"/>
+" clip-path="url(#p8ccf9203ff)" style="fill: #d97736"/>
    </g>
    <g id="patch_7">
     <path d="M 132.36963 114.622669 
@@ -179,7 +178,7 @@ L 433.240106 114.622669
 L 433.240106 174.654038 
 L 132.36963 174.654038 
 z
-" clip-path="url(#pfd1687db20)" style="fill: #d97736"/>
+" clip-path="url(#p8ccf9203ff)" style="fill: #d97736"/>
    </g>
    <g id="patch_8">
     <path d="M 132.30574 189.66188 
@@ -187,7 +186,7 @@ L 433.240106 189.66188
 L 433.240106 249.693249 
 L 132.30574 249.693249 
 z
-" clip-path="url(#pfd1687db20)" style="fill: #d97736"/>
+" clip-path="url(#p8ccf9203ff)" style="fill: #d97736"/>
    </g>
    <g id="patch_9">
     <path d="M 98.901094 260.198739 
@@ -221,12 +220,9 @@ L 506.794688 260.198739
     <text style="font-weight: 600; font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #243447" x="98.901094" y="17.077969" transform="rotate(-0 98.901094 17.077969)">Signal gating by policy</text>
    </g>
   </g>
-  <g id="text_19">
-   <text style="font-size: 7.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #627286" x="9.38376" y="296.51976" transform="rotate(-0 9.38376 296.51976)">Synthetic experiment · Source: artifacts/experiment_summary.json · Machine-dependent measurements</text>
-  </g>
  </g>
  <defs>
-  <clipPath id="pfd1687db20">
+  <clipPath id="p8ccf9203ff">
    <rect x="98.901094" y="29.077969" width="407.893595" height="231.12077"/>
   </clipPath>
  </defs>

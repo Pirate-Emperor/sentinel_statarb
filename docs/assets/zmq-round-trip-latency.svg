@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="526.79952pt" height="290.905518pt" viewBox="0 0 526.79952 290.905518" xmlns="http://www.w3.org/2000/svg" version="1.1">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="526.79952pt" height="281.99952pt" viewBox="0 0 526.79952 281.99952" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <title>zmq round trip latency</title>
  <metadata>
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
     <dc:title>zmq round trip latency</dc:title>
-    <dc:date>2026-10-16T15:33:59.347435</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
-      <dc:title>Sentinel StatArb Matplotlib plot generator</dc:title>
+      <dc:title>Matplotlib</dc:title>
      </cc:Agent>
     </dc:creator>
    </cc:Work>
@@ -23,8 +22,8 @@
  </defs>
  <g id="figure_1">
   <g id="patch_1">
-   <path d="M 0 290.905518 
-L 526.79952 290.905518 
+   <path d="M 0 281.99952 
+L 526.79952 281.99952 
 L 526.79952 0 
 L 0 0 
 z
@@ -64,7 +63,7 @@ z
      <g id="line2d_4">
       <path d="M 44.379531 259.79952 
 L 519.59952 259.79952 
-" clip-path="url(#p7e33dd2de0)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#p70800a19f2)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_5"/>
      <g id="text_4">
@@ -75,7 +74,7 @@ L 519.59952 259.79952
      <g id="line2d_6">
       <path d="M 44.379531 210.999191 
 L 519.59952 210.999191 
-" clip-path="url(#p7e33dd2de0)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#p70800a19f2)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_7"/>
      <g id="text_5">
@@ -86,7 +85,7 @@ L 519.59952 210.999191
      <g id="line2d_8">
       <path d="M 44.379531 162.198862 
 L 519.59952 162.198862 
-" clip-path="url(#p7e33dd2de0)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#p70800a19f2)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_9"/>
      <g id="text_6">
@@ -97,7 +96,7 @@ L 519.59952 162.198862
      <g id="line2d_10">
       <path d="M 44.379531 113.398533 
 L 519.59952 113.398533 
-" clip-path="url(#p7e33dd2de0)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#p70800a19f2)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_11"/>
      <g id="text_7">
@@ -108,7 +107,7 @@ L 519.59952 113.398533
      <g id="line2d_12">
       <path d="M 44.379531 64.598203 
 L 519.59952 64.598203 
-" clip-path="url(#p7e33dd2de0)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#p70800a19f2)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_13"/>
      <g id="text_8">
@@ -125,7 +124,7 @@ L 152.384074 259.79952
 L 152.384074 236.152344 
 L 65.98044 236.152344 
 z
-" clip-path="url(#p7e33dd2de0)" style="fill: #3568a8"/>
+" clip-path="url(#p70800a19f2)" style="fill: #3568a8"/>
    </g>
    <g id="patch_4">
     <path d="M 238.787708 259.79952 
@@ -133,7 +132,7 @@ L 325.191343 259.79952
 L 325.191343 187.963239 
 L 238.787708 187.963239 
 z
-" clip-path="url(#p7e33dd2de0)" style="fill: #19877d"/>
+" clip-path="url(#p70800a19f2)" style="fill: #19877d"/>
    </g>
    <g id="patch_5">
     <path d="M 411.594977 259.79952 
@@ -141,7 +140,7 @@ L 497.998611 259.79952
 L 497.998611 88.894667 
 L 411.594977 88.894667 
 z
-" clip-path="url(#p7e33dd2de0)" style="fill: #d97736"/>
+" clip-path="url(#p70800a19f2)" style="fill: #d97736"/>
    </g>
    <g id="patch_6">
     <path d="M 44.379531 259.79952 
@@ -169,12 +168,9 @@ L 519.59952 259.79952
     <text style="font-weight: 600; font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #243447" x="44.379531" y="17.077969" transform="rotate(-0 44.379531 17.077969)">ZeroMQ IPC round-trip latency</text>
    </g>
   </g>
-  <g id="text_15">
-   <text style="font-size: 7.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #627286" x="9.38376" y="281.90376" transform="rotate(-0 9.38376 281.90376)">Synthetic experiment · Source: artifacts/zmq_ipc_benchmark.json · Machine-dependent measurements</text>
-  </g>
  </g>
  <defs>
-  <clipPath id="p7e33dd2de0">
+  <clipPath id="p70800a19f2">
    <rect x="44.379531" y="29.077969" width="475.219989" height="230.721551"/>
   </clipPath>
  </defs>

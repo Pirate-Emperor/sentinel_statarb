@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="526.79952pt" height="283.597518pt" viewBox="0 0 526.79952 283.597518" xmlns="http://www.w3.org/2000/svg" version="1.1">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="526.79952pt" height="274.79952pt" viewBox="0 0 526.79952 274.79952" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <title>stop limit gap boundary</title>
  <metadata>
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
     <dc:title>stop limit gap boundary</dc:title>
-    <dc:date>2026-10-16T15:33:59.191106</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
-      <dc:title>Sentinel StatArb Matplotlib plot generator</dc:title>
+      <dc:title>Matplotlib</dc:title>
      </cc:Agent>
     </dc:creator>
    </cc:Work>
@@ -23,8 +22,8 @@
  </defs>
  <g id="figure_1">
   <g id="patch_1">
-   <path d="M 0 283.597518 
-L 526.79952 283.597518 
+   <path d="M 0 274.79952 
+L 526.79952 274.79952 
 L 526.79952 0 
 L 0 0 
 z
@@ -39,9 +38,9 @@ L 58.629219 29.077969
 z
 " style="fill: #ffffff"/>
    </g>
-   <g clip-path="url(#pbde14a043e)">
+   <g clip-path="url(#p2c7bd6414d)">
     <image xlink:href="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAAoEAAAEhCAYAAAAAp3rLAAAFdklEQVR4nO3YsQ3CABAEQUCuw/2XRAlEpB9CDSR+oZ2p4MLV3Z/v1+cGAFzunNmeQNhjewAAANcTgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIKO7QEAm86Z7QkAKzyBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACDq2B/y7c2Z7AgDAzzyBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAEDQFz4ADBc/cueUAAAAAElFTkSuQmCC" id="image9f5ccd11d2" transform="scale(1 -1) translate(0 -208.08)" x="58.32" y="-29.437518" width="461.52" height="208.08"/>
+iVBORw0KGgoAAAANSUhEUgAAAoEAAAEhCAYAAAAAp3rLAAAFdklEQVR4nO3YsQ3CABAEQUCuw/2XRAlEpB9CDSR+oZ2p4MLV3Z/v1+cGAFzunNmeQNhjewAAANcTgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIKO7QEAm86Z7QkAKzyBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACDq2B/y7c2Z7AgDAzzyBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAECQCAQACBKBAABBIhAAIEgEAgAEiUAAgCARCAAQJAIBAIJEIABAkAgEAAgSgQAAQSIQACBIBAIABIlAAIAgEQgAECQCAQCCRCAAQJAIBAAIEoEAAEEiEAAgSAQCAASJQACAIBEIABAkAgEAgkQgAEDQFz4ADBc/cueUAAAAAElFTkSuQmCC" id="image9f5ccd11d2" transform="scale(1 -1) translate(0 -208.08)" x="58.32" y="-29.27952" width="461.52" height="208.08"/>
    </g>
    <g id="matplotlib.axis_1">
     <g id="xtick_1">
@@ -96,63 +95,63 @@ iVBORw0KGgoAAAANSUhEUgAAAoEAAAEhCAYAAAAAp3rLAAAFdklEQVR4nO3YsQ3CABAEQUCuw/2XRAlE
      <g id="line2d_9">
       <path d="M 58.629219 237.598739 
 L 58.629219 29.077969 
-" clip-path="url(#pbde14a043e)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
+" clip-path="url(#p2c7bd6414d)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
      </g>
     </g>
     <g id="xtick_10">
      <g id="line2d_10">
       <path d="M 116.250506 237.598739 
 L 116.250506 29.077969 
-" clip-path="url(#pbde14a043e)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
+" clip-path="url(#p2c7bd6414d)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
      </g>
     </g>
     <g id="xtick_11">
      <g id="line2d_11">
       <path d="M 173.871794 237.598739 
 L 173.871794 29.077969 
-" clip-path="url(#pbde14a043e)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
+" clip-path="url(#p2c7bd6414d)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
      </g>
     </g>
     <g id="xtick_12">
      <g id="line2d_12">
       <path d="M 231.493082 237.598739 
 L 231.493082 29.077969 
-" clip-path="url(#pbde14a043e)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
+" clip-path="url(#p2c7bd6414d)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
      </g>
     </g>
     <g id="xtick_13">
      <g id="line2d_13">
       <path d="M 289.114369 237.598739 
 L 289.114369 29.077969 
-" clip-path="url(#pbde14a043e)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
+" clip-path="url(#p2c7bd6414d)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
      </g>
     </g>
     <g id="xtick_14">
      <g id="line2d_14">
       <path d="M 346.735657 237.598739 
 L 346.735657 29.077969 
-" clip-path="url(#pbde14a043e)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
+" clip-path="url(#p2c7bd6414d)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
      </g>
     </g>
     <g id="xtick_15">
      <g id="line2d_15">
       <path d="M 404.356945 237.598739 
 L 404.356945 29.077969 
-" clip-path="url(#pbde14a043e)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
+" clip-path="url(#p2c7bd6414d)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
      </g>
     </g>
     <g id="xtick_16">
      <g id="line2d_16">
       <path d="M 461.978232 237.598739 
 L 461.978232 29.077969 
-" clip-path="url(#pbde14a043e)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
+" clip-path="url(#p2c7bd6414d)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
      </g>
     </g>
     <g id="xtick_17">
      <g id="line2d_17">
       <path d="M 519.59952 237.598739 
 L 519.59952 29.077969 
-" clip-path="url(#pbde14a043e)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
+" clip-path="url(#p2c7bd6414d)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
      </g>
     </g>
     <g id="text_9">
@@ -182,28 +181,28 @@ L 519.59952 29.077969
      <g id="line2d_21">
       <path d="M 58.629219 29.077969 
 L 519.59952 29.077969 
-" clip-path="url(#pbde14a043e)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
+" clip-path="url(#p2c7bd6414d)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
      </g>
     </g>
     <g id="ytick_5">
      <g id="line2d_22">
       <path d="M 58.629219 98.584892 
 L 519.59952 98.584892 
-" clip-path="url(#pbde14a043e)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
+" clip-path="url(#p2c7bd6414d)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
      </g>
     </g>
     <g id="ytick_6">
      <g id="line2d_23">
       <path d="M 58.629219 168.091815 
 L 519.59952 168.091815 
-" clip-path="url(#pbde14a043e)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
+" clip-path="url(#p2c7bd6414d)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
      </g>
     </g>
     <g id="ytick_7">
      <g id="line2d_24">
       <path d="M 58.629219 237.598739 
 L 519.59952 237.598739 
-" clip-path="url(#pbde14a043e)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
+" clip-path="url(#p2c7bd6414d)" style="fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square"/>
      </g>
     </g>
     <g id="text_13">
@@ -286,12 +285,9 @@ L 519.59952 237.598739
     <text style="font-weight: 600; font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #243447" x="58.629219" y="17.077969" transform="rotate(-0 58.629219 17.077969)">Stop-limit marketability boundary</text>
    </g>
   </g>
-  <g id="text_39">
-   <text style="font-size: 7.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #627286" x="9.38376" y="274.59576" transform="rotate(-0 9.38376 274.59576)">Synthetic experiment · Source: artifacts/experiment_summary.json · OCO sweep · Machine-dependent measurements</text>
-  </g>
  </g>
  <defs>
-  <clipPath id="pbde14a043e">
+  <clipPath id="p2c7bd6414d">
    <rect x="58.629219" y="29.077969" width="460.970301" height="208.52077"/>
   </clipPath>
  </defs>
