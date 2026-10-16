@@ -397,10 +397,16 @@ def check_gil_comparison_if_present() -> None:
 
 def check_svgs_and_readme() -> None:
     svg_paths = sorted(ASSETS.glob("*.svg"))
-    expected_assets = {"architecture.svg", "performance-comparison.svg", "flash-crash-analysis.svg"}
+    plot_names = {
+        "policy-throughput.svg", "policy-latency-percentiles.svg",
+        "signal-gating-counts.svg", "quote-quality-faults.svg",
+        "stop-limit-gap-boundary.svg", "cpp-throughput.svg",
+        "cpp-latency-percentiles.svg", "zmq-round-trip-latency.svg",
+    }
+    expected_assets = {"architecture.svg", *plot_names}
     actual_assets = {path.name for path in svg_paths}
     if actual_assets != expected_assets:
-        fail(f"expected exactly the three compact figures; found {sorted(actual_assets)}")
+        fail(f"expected architecture.svg plus eight Matplotlib plots; found {sorted(actual_assets)}")
     ns = "{http://www.w3.org/2000/svg}"
     for path in svg_paths:
         try:
@@ -423,15 +429,18 @@ def check_svgs_and_readme() -> None:
                 if any(value < 0 or value > max_value for value in coords):
                     fail(f"{path.name}: text coordinate falls outside the viewBox")
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    for rel in re.findall(r"!\[[^\]]*\]\(([^)]+\.svg)\)", readme):
+    refs = re.findall(r"src=[\"']([^\"']+\.svg)[\"']", readme)
+    for rel in refs:
         if not (ROOT / rel).is_file():
             fail(f"README refers to a missing SVG: {rel}")
+    if not plot_names.issubset({Path(rel).name for rel in refs}):
+        fail("README must display all eight generated Matplotlib plots")
     if (ROOT / "main.png").exists() or any(p.name.lower() == "main.png" for p in ROOT.rglob("*")):
         fail("main.png must not be present")
     licenses = list(ROOT.glob("LICENSE*"))
     if [p.name for p in licenses] != ["LICENSE"]:
         fail("keep one project LICENSE file; separate, unused license copies should not remain")
-    print(f"PASS SVG layout and README links: {len(svg_paths)} compact figures")
+    print(f"PASS SVG layout and README links: {len(svg_paths)} files (architecture + eight plots)")
 
 
 def check_author() -> None:

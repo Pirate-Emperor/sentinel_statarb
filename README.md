@@ -16,7 +16,7 @@ All examples use synthetic data. The project does not connect to a broker or pla
 - **ZeroMQ bridge:** Sends validated tick messages over IPC or TCP. Native C++ tests measure one-way and round-trip latency separately. ZeroMQ itself is not lock-free, and the saved run did not meet the 10 μs one-way target.
 - **Lock-free shared-memory IPC:** A native SPSC ring passes messages between two processes using shared memory. The benchmark checks whether the atomic counters are actually lock-free on the host, verifies sequence order, and measures one-way handoff time.
 - **DuckDB writer:** Uses a bounded queue and a separate writer thread. Pandas DataFrame batches reduce per-row insert overhead; read-back checks verify every sequence and quote.
-- **Repeatable experiments:** Save CSV/JSON measurements; three compact SVG figures summarize the event path, measured performance, and crash/risk behavior.
+- **Repeatable experiments:** Save CSV/JSON measurements; a simple architecture SVG and eight Matplotlib plots summarize throughput, latency, quote quality, signal gating, and stop-limit boundaries.
 
 ## System architecture
 
@@ -90,8 +90,8 @@ python scripts/benchmark_storage.py --ticks 10100000 --batch-size 10000 --out ar
 # Compare batch sizes using 100K ticks per run
 python scripts/run_storage_batch_sweep.py --ticks 100000 --out-dir artifacts
 
-# Regenerate the three compact HPC reference figures
-python scripts/make_artifacts.py
+# Generate eight conventional Matplotlib benchmark plots
+python scripts/make_plots.py
 python scripts/validate_reports.py
 ```
 
@@ -99,13 +99,28 @@ The DuckDB command writes a separate warm-up database and measured database. It 
 
 GitHub Actions runs the unit tests, native C++ queue tests, 100K quote experiments, 1M and 10M C++ processing benchmarks, native shared-memory and ZeroMQ tests, and real DuckDB write/read-back tests in the regular job. A separate 120-minute job runs the 10M-row DuckDB warm-up and measured passes so the normal 30-minute test limit cannot cancel it. A run is successful only when the report and data checks finish. See [the workflow](.github/workflows/ci.yml).
 
-## Benchmark and risk figures
+## Benchmark plots
 
-![HPC #9 performance, IPC, and storage measurements](docs/assets/performance-comparison.svg)
+These eight conventional Matplotlib charts are generated from the checked-in experiment JSON/CSV reports. They show synthetic test behavior; latency and throughput are machine-dependent. Stop-limit marketability is a price condition, not confirmation of an actual fill.
 
-![Synthetic crash replay and stop-limit boundaries](docs/assets/flash-crash-analysis.svg)
+<p align="center">
+  <img src="docs/assets/policy-throughput.svg" width="48%" alt="Quote-policy throughput" />
+  <img src="docs/assets/policy-latency-percentiles.svg" width="48%" alt="Quote-policy latency percentiles" />
+</p>
+<p align="center">
+  <img src="docs/assets/signal-gating-counts.svg" width="48%" alt="Accepted and debounced signal counts" />
+  <img src="docs/assets/quote-quality-faults.svg" width="48%" alt="Quote-quality fault counts" />
+</p>
+<p align="center">
+  <img src="docs/assets/stop-limit-gap-boundary.svg" width="48%" alt="Stop-limit marketability across price gaps" />
+  <img src="docs/assets/cpp-throughput.svg" width="48%" alt="Native C++ event throughput" />
+</p>
+<p align="center">
+  <img src="docs/assets/cpp-latency-percentiles.svg" width="48%" alt="Native C++ sampled latency percentiles" />
+  <img src="docs/assets/zmq-round-trip-latency.svg" width="48%" alt="ZeroMQ round-trip latency percentiles" />
+</p>
 
-The three figures are generated reproducibly by `python scripts/make_artifacts.py`. Their pinned measurements match the HPC #9 evidence summarized below; the detailed experiment ledger retains run provenance, raw repeats, settings, and limitations.
+Regenerate them with `python scripts/make_plots.py`. The workflow also regenerates the plots and checks their SVG layout and README references. Machine-readable reports remain the source of truth; the figures are visual summaries, not separate measurements.
 
 ## Reading the numbers correctly
 
@@ -141,7 +156,7 @@ Full run-level details, raw repeats, all capacity settings, quote/risk counts, t
 - `tests/`: Python unit and integration tests
 - `scripts/`: benchmarks, report generation, and report validation
 - `artifacts/`: synthetic experiment results in CSV/JSON format
-- `docs/assets/`: system, execution, data-quality, and benchmark SVGs
+- `docs/assets/`: simple architecture SVG plus eight reproducible Matplotlib plot SVGs
 
 ## Author and license
 
@@ -154,7 +169,7 @@ The project uses the MIT License. See [LICENSE](LICENSE).
 
 # Complete experiment ledger (reproducibility record)
 
-This section intentionally records experiment inputs, measurement boundaries, raw result summaries, and limitations in one place. Older reference figures above are not overwritten silently: each subsection identifies whether its figures came from the HPC host or a hosted GitHub runner.
+This section intentionally records experiment inputs, measurement boundaries, raw result summaries, and limitations in one place. Historical measurements are kept separate by source and run; the plots above visualise the checked-in reference reports and do not replace the experiment ledger.
 
 ## A. Run provenance and evidence hierarchy
 
@@ -424,7 +439,7 @@ python scripts/validate_reports.py
 
 ```bash
 python scripts/run_experiments.py --ticks 100000 --repeats 3 --out artifacts
-python scripts/make_artifacts.py
+python scripts/make_plots.py
 python scripts/validate_reports.py
 ```
 
@@ -446,7 +461,7 @@ python scripts/run_shm_spsc_capacity_sweep.py --messages 200000 --warmup 20000 -
 ./build/cpp/sentinel_zmq_ipc_oneway_benchmark --messages 20000 --warmup 2000 --out artifacts/cpp_zmq_ipc_oneway_benchmark.json
 ./build/cpp/sentinel_zmq_ipc_benchmark --messages 20000 --warmup 2000 --out artifacts/cpp_zmq_ipc_benchmark.json
 python scripts/benchmark_zmq_ipc.py --ticks 20000 --warmup 2000 --out artifacts/zmq_ipc_benchmark.json
-python scripts/make_artifacts.py
+python scripts/make_plots.py
 python scripts/validate_reports.py
 ```
 
@@ -455,7 +470,7 @@ python scripts/validate_reports.py
 ```bash
 python scripts/run_storage_batch_sweep.py --ticks 100000 --out-dir artifacts
 python scripts/benchmark_storage.py --ticks 10100000 --batch-size 10000 --out artifacts/stress_ticks.duckdb
-python scripts/make_artifacts.py
+python scripts/make_plots.py
 python scripts/validate_reports.py
 ```
 
@@ -464,8 +479,8 @@ Database binaries are local outputs; commit the source, scripts and small JSON/C
 ## K. Figures and report index
 
 - [System path and subsystem boundaries](docs/assets/architecture.svg)
-- [HPC #9 benchmark snapshot: throughput, IPC, and DuckDB](docs/assets/performance-comparison.svg)
-- [Crash-window signal gating and OCO price boundaries](docs/assets/flash-crash-analysis.svg)
+- [Quote-policy throughput](docs/assets/policy-throughput.svg)
+- [Stop-limit price-gap boundary](docs/assets/stop-limit-gap-boundary.svg)
 - [Detailed methods and historical reference measurements](docs/EXPERIMENTS.md)
 - [HPC host provenance and complete validation record](docs/HPC_VALIDATION_2026-10-14.md)
 
@@ -856,7 +871,7 @@ The latest hosted-CI batch-size sweep remains separate from HPC results. In host
 - [Run #9 persisted machine-readable files on `integrator/main`](https://github.com/SpryzenHell/integrator/tree/main/artifacts/sentinel-statarb-hpc)
 - [`run-status.txt`](https://github.com/SpryzenHell/integrator/blob/main/artifacts/sentinel-statarb-hpc/run-status.txt) names the success state and tested source revision.
 - [Paired benchmark implementation](scripts/benchmark_gil_pipeline.py), [post-crash report generation](sentinel_runtime/experiments.py), [report validation](scripts/validate_reports.py), and [tests](tests/test_engine.py).
-- [All project diagrams and snapshots](docs/assets/) are SVGs committed with the project; they visualize the checked-in/generated JSON results and are not separate timing measurements.
+- [All project figures](docs/assets/) include the simple architecture SVG and eight Matplotlib plots; the plots visualise JSON/CSV results and are not separate timing measurements.
 
 ## R. Final evidence checklist and interpretation
 
