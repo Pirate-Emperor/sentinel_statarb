@@ -48,7 +48,7 @@ class SavedArtifactTests(unittest.TestCase):
                 self.assertIsNotNone(view)
                 self.assertEqual(len(view.split()), 4)
 
-    def test_eight_matplotlib_plots_have_titles_and_report_provenance(self) -> None:
+    def test_eight_matplotlib_plots_have_titles_without_footer_text(self) -> None:
         expected_titles = {
             "policy-throughput.svg": "Quote-policy throughput",
             "policy-latency-percentiles.svg": "Quote-policy latency percentiles",
