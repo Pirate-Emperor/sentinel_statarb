@@ -48,6 +48,21 @@ class SavedArtifactTests(unittest.TestCase):
                 self.assertIsNotNone(view)
                 self.assertEqual(len(view.split()), 4)
 
+    def test_architecture_is_a_plain_flow_diagram_without_promotional_copy(self) -> None:
+        text = self.svg_text("architecture.svg")
+        for label in (
+            "System architecture", "Quote stream", "Integrity gate", "Event engine",
+            "Signal policy", "Strategy output", "Risk checks", "Protective action",
+            "Shared-memory SPSC", "ZeroMQ", "DuckDB writer",
+        ):
+            with self.subTest(label=label):
+                self.assertIn(label, text)
+        for unwanted in (
+            "Synthetic quote replay", "SENTINEL STATARB / 01",
+            "Synthetic experiment", "Machine-dependent measurements",
+        ):
+            self.assertNotIn(unwanted, text)
+
     def test_eight_matplotlib_plots_have_titles_without_footer_text(self) -> None:
         expected_titles = {
             "policy-throughput.svg": "Quote-policy throughput",
