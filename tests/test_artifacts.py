@@ -63,8 +63,9 @@ class SavedArtifactTests(unittest.TestCase):
             with self.subTest(plot=name):
                 text = self.svg_text(name)
                 self.assertIn(title, text)
-                self.assertIn("Synthetic experiment", text)
-                self.assertIn("Source: artifacts/", text)
+                self.assertNotIn("Synthetic experiment", text)
+                self.assertNotIn("Machine-dependent measurements", text)
+                self.assertNotIn("Source: artifacts/", text)
 
     def test_plot_units_and_interpretation_are_explicit(self) -> None:
         throughput = self.svg_text("cpp-throughput.svg")
