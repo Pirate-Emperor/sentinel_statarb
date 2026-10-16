@@ -17,6 +17,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: sentinel-plot-assets-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   plots:
     name: Generate and publish reference Matplotlib plots
@@ -42,5 +46,6 @@ jobs:
             echo "Plot assets already match the checked-in reference reports."
           else
             git commit -m "docs: publish Matplotlib benchmark plots"
+            git pull --rebase origin main
             git push
           fi
