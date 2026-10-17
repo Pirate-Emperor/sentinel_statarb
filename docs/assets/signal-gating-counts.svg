@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="526.798822pt" height="296.39952pt" viewBox="0 0 526.798822 296.39952" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <title>signal gating counts</title>
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title>signal gating counts</dc:title>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 296.39952 
+L 526.798822 296.39952 
+L 526.798822 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 98.901094 260.198739 
+L 506.794688 260.198739 
+L 506.794688 29.077969 
+L 98.901094 29.077969 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <path d="M 98.901094 260.198739 
+L 98.901094 29.077969 
+" clip-path="url(#p8ccf9203ff)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_2"/>
+     <g id="text_1">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #627286" x="98.901094" y="273.036629" transform="rotate(-0 98.901094 273.036629)">0</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_3">
+      <path d="M 166.154257 260.198739 
+L 166.154257 29.077969 
+" clip-path="url(#p8ccf9203ff)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_4"/>
+     <g id="text_2">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #627286" x="166.154257" y="273.036629" transform="rotate(-0 166.154257 273.036629)">20000</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_5">
+      <path d="M 233.40742 260.198739 
+L 233.40742 29.077969 
+" clip-path="url(#p8ccf9203ff)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_6"/>
+     <g id="text_3">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #627286" x="233.40742" y="273.036629" transform="rotate(-0 233.40742 273.036629)">40000</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_7">
+      <path d="M 300.660583 260.198739 
+L 300.660583 29.077969 
+" clip-path="url(#p8ccf9203ff)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_8"/>
+     <g id="text_4">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #627286" x="300.660583" y="273.036629" transform="rotate(-0 300.660583 273.036629)">60000</text>
+     </g>
+    </g>
+    <g id="xtick_5">
+     <g id="line2d_9">
+      <path d="M 367.913746 260.198739 
+L 367.913746 29.077969 
+" clip-path="url(#p8ccf9203ff)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_10"/>
+     <g id="text_5">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #627286" x="367.913746" y="273.036629" transform="rotate(-0 367.913746 273.036629)">80000</text>
+     </g>
+    </g>
+    <g id="xtick_6">
+     <g id="line2d_11">
+      <path d="M 435.166909 260.198739 
+L 435.166909 29.077969 
+" clip-path="url(#p8ccf9203ff)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_12"/>
+     <g id="text_6">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #627286" x="435.166909" y="273.036629" transform="rotate(-0 435.166909 273.036629)">100000</text>
+     </g>
+    </g>
+    <g id="xtick_7">
+     <g id="line2d_13">
+      <path d="M 502.420072 260.198739 
+L 502.420072 29.077969 
+" clip-path="url(#p8ccf9203ff)" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_14"/>
+     <g id="text_7">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #627286" x="502.420072" y="273.036629" transform="rotate(-0 502.420072 273.036629)">120000</text>
+     </g>
+    </g>
+    <g id="text_8">
+     <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle" x="302.847891" y="286.797176" transform="rotate(-0 302.847891 286.797176)">Signal count</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_15"/>
+     <g id="text_9">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #627286" x="92.901094" y="73.01844" transform="rotate(-0 92.901094 73.01844)">no debounce</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_16"/>
+     <g id="text_10">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #627286" x="92.901094" y="148.057651" transform="rotate(-0 92.901094 148.057651)">fixed debounce</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_17"/>
+     <g id="text_11">
+      <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #627286" x="92.901094" y="223.096862" transform="rotate(-0 92.901094 223.096862)">dynamic debounce</text>
+     </g>
+    </g>
+   </g>
+   <g id="patch_3">
+    <path d="M 98.901094 39.583458 
+L 433.240106 39.583458 
+L 433.240106 99.614827 
+L 98.901094 99.614827 
+z
+" clip-path="url(#p8ccf9203ff)" style="fill: #3568a8"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 98.901094 114.622669 
+L 132.36963 114.622669 
+L 132.36963 174.654038 
+L 98.901094 174.654038 
+z
+" clip-path="url(#p8ccf9203ff)" style="fill: #3568a8"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 98.901094 189.66188 
+L 132.30574 189.66188 
+L 132.30574 249.693249 
+L 98.901094 249.693249 
+z
+" clip-path="url(#p8ccf9203ff)" style="fill: #3568a8"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 433.240106 39.583458 
+L 433.240106 39.583458 
+L 433.240106 99.614827 
+L 433.240106 99.614827 
+z
+" clip-path="url(#p8ccf9203ff)" style="fill: #d97736"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 132.36963 114.622669 
+L 433.240106 114.622669 
+L 433.240106 174.654038 
+L 132.36963 174.654038 
+z
+" clip-path="url(#p8ccf9203ff)" style="fill: #d97736"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 132.30574 189.66188 
+L 433.240106 189.66188 
+L 433.240106 249.693249 
+L 132.30574 249.693249 
+z
+" clip-path="url(#p8ccf9203ff)" style="fill: #d97736"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 98.901094 260.198739 
+L 98.901094 29.077969 
+" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 98.901094 260.198739 
+L 506.794688 260.198739 
+" style="fill: none; stroke: #e3e8ee; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #627286" x="502.715753" y="39.779134" transform="rotate(-0 502.715753 39.779134)">Blue = accepted · Orange = debounced</text>
+   </g>
+   <g id="text_13">
+    <text style="font-weight: 600; font-size: 8.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="266.0706" y="71.807151" transform="rotate(-0 266.0706 71.807151)">99,427</text>
+   </g>
+   <g id="text_14">
+    <text style="font-weight: 600; font-size: 8.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="115.635362" y="146.846362" transform="rotate(-0 115.635362 146.846362)">9,953</text>
+   </g>
+   <g id="text_15">
+    <text style="font-weight: 600; font-size: 8.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="282.804868" y="146.846362" transform="rotate(-0 282.804868 146.846362)">89,474</text>
+   </g>
+   <g id="text_16">
+    <text style="font-weight: 600; font-size: 8.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="115.603417" y="221.885573" transform="rotate(-0 115.603417 221.885573)">9,934</text>
+   </g>
+   <g id="text_17">
+    <text style="font-weight: 600; font-size: 8.5px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="282.772923" y="221.885573" transform="rotate(-0 282.772923 221.885573)">89,493</text>
+   </g>
+   <g id="text_18">
+    <text style="font-weight: 600; font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #243447" x="98.901094" y="17.077969" transform="rotate(-0 98.901094 17.077969)">Signal gating by policy</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p8ccf9203ff">
+   <rect x="98.901094" y="29.077969" width="407.893595" height="231.12077"/>
+  </clipPath>
+ </defs>
+</svg>

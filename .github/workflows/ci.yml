@@ -28,7 +28,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install project and optional test dependencies
-        run: python -m pip install --upgrade pip && python -m pip install -e ".[ipc,storage,dev]"
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[ipc,storage,dev,plots]"
       - name: Check Python syntax
         run: python -m compileall -q sentinel_runtime scripts tests
       - name: Run Python unit and integration tests
@@ -59,7 +59,7 @@ jobs:
         run: python scripts/benchmark_storage.py --ticks 100000 --batch-size 10000 --out artifacts/storage_smoke.duckdb
       - name: Compare DuckDB batch sizes with warm-up and read-back checks
         run: python -u scripts/run_storage_batch_sweep.py --ticks 100000 --out-dir artifacts
-      - name: Generate diagrams and validate reports
+      - name: Generate Matplotlib plots and validate reports
         run: python scripts/make_artifacts.py && python scripts/validate_reports.py
       - name: Publish quick test reports and charts
         if: always()
@@ -85,7 +85,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install storage dependencies
-        run: python -m pip install --upgrade pip && python -m pip install -e ".[storage]"
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[storage,plots]"
       - name: Verify 10.1M rows in separate warm-up and measured runs
         run: python -u scripts/benchmark_storage.py --ticks 10100000 --batch-size 10000 --out artifacts/stress_ticks.duckdb
       - name: Regenerate current quote/risk report schema for full-scale validation

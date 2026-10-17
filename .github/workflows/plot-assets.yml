@@ -1,0 +1,51 @@
+name: Refresh benchmark plot assets
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/make_plots.py"
+      - "scripts/make_artifacts.py"
+      - "artifacts/experiment_summary.json"
+      - "artifacts/experiment_metrics.csv"
+      - "artifacts/cpp_benchmark_10m.json"
+      - "artifacts/zmq_ipc_benchmark.json"
+      - "pyproject.toml"
+      - ".github/workflows/plot-assets.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sentinel-plot-assets-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  plots:
+    name: Generate and publish reference Matplotlib plots
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out reference reports
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install plotting dependency
+        run: python -m pip install "matplotlib>=3.8" "numpy>=1.24"
+      - name: Generate the eight Matplotlib plots
+        run: python scripts/make_plots.py
+      - name: Commit updated plot assets when content changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/assets/policy-throughput.svg docs/assets/policy-latency-percentiles.svg docs/assets/signal-gating-counts.svg docs/assets/quote-quality-faults.svg docs/assets/stop-limit-gap-boundary.svg docs/assets/cpp-throughput.svg docs/assets/cpp-latency-percentiles.svg docs/assets/zmq-round-trip-latency.svg
+          if git diff --cached --quiet; then
+            echo "Plot assets already match the checked-in reference reports."
+          else
+            git commit -m "docs: publish Matplotlib benchmark plots"
+            git pull --rebase origin main
+            git push
+          fi
